@@ -125,7 +125,7 @@ class RecipeRepository {
       ],
       totalTimeMins: 25,
       cuisine: 'Indian',
-      imageUrl: 'https://images.unsplash.com/photo-1546833998-877b37c2e5c6?auto=format&fit=crop&w=800&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=800&q=80',
       servings: 1,
       rating: 4.7,
       reviewCount: 64,

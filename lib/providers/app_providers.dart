@@ -361,6 +361,26 @@ class ScannerNotifier extends Notifier<ScannerState> {
       cuisineFilter: cuisine,
     );
 
+    if (state.detectedIngredients.isNotEmpty) {
+      final scannedSet = state.detectedIngredients
+          .map((e) => e.trim().toLowerCase())
+          .where((e) => e.isNotEmpty)
+          .toSet();
+      results.sort((a, b) {
+        final aHasScanned = a.matchedIngredients.any((m) {
+          final ml = m.toLowerCase();
+          return scannedSet.any((s) => ml.contains(s) || s.contains(ml));
+        });
+        final bHasScanned = b.matchedIngredients.any((m) {
+          final ml = m.toLowerCase();
+          return scannedSet.any((s) => ml.contains(s) || s.contains(ml));
+        });
+        if (aHasScanned && !bHasScanned) return -1;
+        if (!aHasScanned && bHasScanned) return 1;
+        return b.matchPercentage.compareTo(a.matchPercentage);
+      });
+    }
+
     if (state.only100PercentMatch) {
       results = results.where((r) => r.missingIngredients.isEmpty).toList();
     }
