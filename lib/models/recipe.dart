@@ -1,6 +1,42 @@
 import '../design/food_image_helper.dart';
 import '../design/sprout_ingredient_formatter.dart';
 
+enum DietaryBadge { veg, egg, nonVeg }
+
+extension RecipeTextSanitizer on String {
+  String sanitizeDegreeSymbols() {
+    return replaceAllMapped(
+      RegExp(r'\b(\d+)\s*o\s*([CF]\b|angle\b)', caseSensitive: false),
+      (match) {
+        final val = match.group(1);
+        final unit = match.group(2)!;
+        if (unit.toLowerCase() == 'angle') {
+          return '$val° angle';
+        }
+        return '$val°$unit';
+      },
+    );
+  }
+}
+
+DietaryBadge resolveDietaryBadge(List<String> ingredients, {String? defaultDiet}) {
+  final joined = ingredients.join(' ').toLowerCase();
+
+  final nonVegRegex = RegExp(
+    r'\b(chicken|mutton|lamb|pork|beef|fish|prawn|prawns|shrimp|crab|bacon|ham|anchovy|gelatin|meat)\b',
+  );
+  if (nonVegRegex.hasMatch(joined) || defaultDiet == 'non-veg' || defaultDiet == 'nonveg') {
+    return DietaryBadge.nonVeg;
+  }
+
+  final eggRegex = RegExp(r'\b(egg|eggs|egg white|egg whites|egg yolk|egg yolks|mayonnaise|meringue)\b');
+  if (eggRegex.hasMatch(joined) || defaultDiet == 'egg') {
+    return DietaryBadge.egg;
+  }
+
+  return DietaryBadge.veg;
+}
+
 class Recipe {
   final String id;
   final String title;
@@ -148,14 +184,37 @@ class Recipe {
       }
     }
 
+    final effectiveIngredients = normalizedIngredients.isNotEmpty ? normalizedIngredients : rawIngredients;
+    final resolvedDietaryBadge = resolveDietaryBadge(
+      effectiveIngredients,
+      defaultDiet: json['diet']?.toString(),
+    );
+    final String resolvedDietStr;
+    switch (resolvedDietaryBadge) {
+      case DietaryBadge.egg:
+        resolvedDietStr = 'egg';
+        break;
+      case DietaryBadge.nonVeg:
+        resolvedDietStr = 'non-veg';
+        break;
+      case DietaryBadge.veg:
+        resolvedDietStr = 'veg';
+        break;
+    }
+
+    final sanitizedInstructions = instructionsList.map((i) => i.sanitizeDegreeSymbols()).toList();
+    final sanitizedDescription = (json['description'] ?? 'A comforting and flavorful meal cooked with care.')
+        .toString()
+        .sanitizeDegreeSymbols();
+
     return Recipe(
       id: json['id']?.toString() ?? '',
       title: json['title'] ?? json['TranslatedRecipeName'] ?? 'Delicious Dish',
       slug: json['slug'],
-      description: json['description'] ?? 'A comforting and flavorful meal cooked with care.',
-      ingredients: normalizedIngredients.isNotEmpty ? normalizedIngredients : rawIngredients,
+      description: sanitizedDescription,
+      ingredients: effectiveIngredients,
       cleanedIngredients: parseList(json['cleaned_ingredients'] ?? json['Cleaned-Ingredients']),
-      instructions: instructionsList,
+      instructions: sanitizedInstructions,
       totalTimeMins: validatedTime,
       cuisine: json['cuisine'] ?? json['Cuisine'] ?? 'Indian',
       sourceUrl: json['source_url'] ?? json['URL'],
@@ -169,7 +228,7 @@ class Recipe {
           : ((json['servings'] as num?)?.toInt() ?? 1),
       rating: (json['rating'] as num?)?.toDouble(),
       reviewCount: (json['review_count'] as num?)?.toInt() ?? 0,
-      diet: json['diet']?.toString() ?? 'veg',
+      diet: resolvedDietStr,
       isSaved: isSaved,
       matchedIngredients: parseList(json['matched_ingredients']),
       missingIngredients: parseList(json['missing_ingredients']),
@@ -196,6 +255,9 @@ class Recipe {
       'diet': diet,
     };
   }
+
+  /// Resolved dietary badge (veg, egg, or non-veg)
+  DietaryBadge get dietaryBadge => resolveDietaryBadge(ingredients, defaultDiet: diet);
 
   /// Clean, human-friendly short display title (2-7 words)
   String get displayTitle => RecipeTitleCleaner.clean(title).displayTitle;

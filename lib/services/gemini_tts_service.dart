@@ -56,8 +56,15 @@ class GeminiTtsService {
       'Sound like an experienced, warm home chef explaining cooking steps simply and encouragingly. '
       'Ensure natural pronunciation of traditional Hindi cooking terms and ingredients.';
 
-  /// Selected voice: 'Kore' (Warm, friendly, human conversational)
-  static const String selectedVoice = 'Kore';
+  /// Selected voice: 'Aoede' (Warm, friendly, culinary instructor voice)
+  static const String selectedVoice = 'Aoede';
+
+  /// Detects if byte payload already contains a 44-byte RIFF WAVE header
+  static bool hasWavHeader(Uint8List bytes) {
+    if (bytes.length < 12) return false;
+    return bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
+           bytes[8] == 0x57 && bytes[9] == 0x41 && bytes[10] == 0x56 && bytes[11] == 0x45;
+  }
 
   /// Wraps raw 16-bit linear PCM audio in a valid 44-byte RIFF WAV header
   static Uint8List addWavHeader(Uint8List pcmBytes, {int sampleRate = 24000, int channels = 1, int bitsPerSample = 16}) {
@@ -234,10 +241,10 @@ class GeminiTtsService {
 
       // 1. Try standard generateContent with preview TTS models (generous quota on Free Tier)
       final primaryModels = [
-        'gemini-2.5-flash-preview-tts',
-        'gemini-3.1-flash-tts-preview',
         'gemini-3.8-flash-lite-tts',
         'gemini-3.8-flash-tts',
+        'gemini-2.5-flash-preview-tts',
+        'gemini-3.1-flash-tts-preview',
       ];
 
       for (final model in primaryModels) {
@@ -253,6 +260,11 @@ class GeminiTtsService {
               ]
             }
           ],
+          'system_instruction': {
+            'parts': [
+              {'text': isHindi ? hindiVoiceDirection : voiceDirection}
+            ]
+          },
           'generationConfig': {
             'responseModalities': ['AUDIO'],
             'speechConfig': {
@@ -286,11 +298,11 @@ class GeminiTtsService {
                 if (base64Audio != null && base64Audio.isNotEmpty) {
                   final audioBytes = base64Decode(base64Audio);
                   Uint8List finalWavBytes;
-                  // If raw PCM L16, prepend 44-byte standard RIFF WAV header for universal playback
-                  if (mimeType.contains('pcm') || mimeType.contains('L16') || !mimeType.contains('wav')) {
-                    finalWavBytes = addWavHeader(audioBytes, sampleRate: 24000);
-                  } else {
+                  // If already valid RIFF WAV, use directly; otherwise prepend 44-byte standard RIFF WAV header
+                  if (hasWavHeader(audioBytes) || mimeType.contains('wav')) {
                     finalWavBytes = audioBytes;
+                  } else {
+                    finalWavBytes = addWavHeader(audioBytes, sampleRate: 24000);
                   }
 
                   await cacheFile.writeAsBytes(finalWavBytes);

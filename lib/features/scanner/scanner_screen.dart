@@ -144,6 +144,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 content: Text(
                   'Added ${confirmedIngredients.length} ingredients to your kitchen! 🌱',
                 ),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(milliseconds: 1800),
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 backgroundColor: SproutColors.sproutGreen,
               ),
             );
@@ -524,7 +527,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                         children: [
                           SproutFilterChip(
                             label: 'Zero Missing (100% Match)',
-                            emoji: '✅',
+                            emoji: scannerState.only100PercentMatch ? '✅' : null,
                             isSelected: scannerState.only100PercentMatch,
 
                             onSelected: () {

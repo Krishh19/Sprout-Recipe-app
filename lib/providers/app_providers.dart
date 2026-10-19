@@ -15,6 +15,7 @@ import '../repositories/saved_repository.dart';
 import '../repositories/scanner_repository.dart';
 import '../repositories/shopping_repository.dart';
 import '../core/config.dart';
+import '../core/ingredient_matcher.dart';
 import '../models/nutrition_info.dart';
 import '../repositories/nutrition_service.dart';
 import '../repositories/substitution_service.dart';
@@ -368,12 +369,10 @@ class ScannerNotifier extends Notifier<ScannerState> {
           .toSet();
       results.sort((a, b) {
         final aHasScanned = a.matchedIngredients.any((m) {
-          final ml = m.toLowerCase();
-          return scannedSet.any((s) => ml.contains(s) || s.contains(ml));
+          return scannedSet.any((s) => IngredientMatcher.isMatch(userItem: s, recipeIngredient: m));
         });
         final bHasScanned = b.matchedIngredients.any((m) {
-          final ml = m.toLowerCase();
-          return scannedSet.any((s) => ml.contains(s) || s.contains(ml));
+          return scannedSet.any((s) => IngredientMatcher.isMatch(userItem: s, recipeIngredient: m));
         });
         if (aHasScanned && !bHasScanned) return -1;
         if (!aHasScanned && bHasScanned) return 1;

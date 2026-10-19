@@ -335,11 +335,50 @@ abstract class SubstitutionService {
       culinaryTip: 'Simmer gently; do not boil rapidly to avoid separation.',
       rationale: 'Maintains silky mouthfeel and tropical aroma.',
     ),
+    'sugar': const SubstitutionModel(
+      originalIngredient: 'sugar',
+      substitute: 'Jaggery Powder, Brown Sugar, or Honey',
+      culinaryTip: 'Swap with equal parts jaggery powder, brown sugar, or 1/3 cup honey / maple syrup.',
+      rationale: 'Provides natural sweetness and moisture retention.',
+    ),
   };
 
   /// Generates a culinary-informed fallback when an ingredient is not in the curated dictionary
-  static SubstitutionModel createSmartFallback(String rawIngredient) {
+  static SubstitutionModel createSmartFallback(
+    String rawIngredient, {
+    String recipeCategory = '',
+    String recipeTitle = '',
+  }) {
     final lower = rawIngredient.toLowerCase().trim();
+    final isSweet = recipeCategory.toLowerCase().contains('dessert') ||
+        recipeCategory.toLowerCase().contains('baking') ||
+        recipeCategory.toLowerCase().contains('sweet') ||
+        recipeCategory.toLowerCase().contains('cookie') ||
+        recipeCategory.toLowerCase().contains('cake') ||
+        recipeTitle.toLowerCase().contains('cookie') ||
+        recipeTitle.toLowerCase().contains('cake') ||
+        recipeTitle.toLowerCase().contains('dessert') ||
+        recipeTitle.toLowerCase().contains('sweet') ||
+        recipeTitle.toLowerCase().contains('halwa') ||
+        recipeTitle.toLowerCase().contains('kheer') ||
+        recipeTitle.toLowerCase().contains('pudding') ||
+        recipeTitle.toLowerCase().contains('barfi') ||
+        recipeTitle.toLowerCase().contains('laddu');
+
+    if (lower.contains('sugar')) {
+      return SubstitutionModel(
+        originalIngredient: rawIngredient,
+        substitute: isSweet
+            ? 'Jaggery powder, brown sugar, or 1/3 cup honey / maple syrup'
+            : 'Pinch of jaggery, honey, or caramelized onions',
+        culinaryTip: isSweet
+            ? 'Swap with equal parts jaggery powder, brown sugar, or 1/3 cup honey/maple syrup.'
+            : 'Add a pinch of jaggery, honey, or caramelized onions to balance acidity.',
+        rationale: isSweet
+            ? 'Maintains sweetness and structure for baked goods and desserts.'
+            : 'Provides balanced sweetness to contrast sour or acidic notes.',
+      );
+    }
 
     if (lower.contains('leaf') ||
         lower.contains('leaves') ||
@@ -387,10 +426,13 @@ abstract class SubstitutionService {
 
     return SubstitutionModel(
       originalIngredient: rawIngredient,
-      substitute: 'Pantry staple alternative or omit',
-      culinaryTip: 'Adjust salt and warming spices to taste; dish will still turn out delicious!',
-      rationale:
-          'The dish remains balanced even without this specific ingredient.',
+      substitute: isSweet ? 'Baking staple alternative or omit' : 'Pantry staple alternative or omit',
+      culinaryTip: isSweet
+          ? 'Check baking substitutions for $rawIngredient to maintain dough texture.'
+          : 'Omit or adjust salt, herbs, and aromatics to taste.',
+      rationale: isSweet
+          ? 'Maintains moisture balance and texture in sweet recipes.'
+          : 'The dish remains balanced even without this specific ingredient.',
     );
   }
 }

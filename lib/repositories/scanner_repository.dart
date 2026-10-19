@@ -189,6 +189,17 @@ Instructions:
     return 'image/jpeg';
   }
 
+  static const Set<String> _ignoredVisionStaples = {
+    'water',
+    'tap water',
+    'hot water',
+    'cold water',
+    'drinking water',
+    'ice',
+    'salt',
+    'oil',
+  };
+
   List<String> _parseIngredientsJson(String text) {
     try {
       final startIndex = text.indexOf('[');
@@ -198,7 +209,11 @@ Instructions:
         final List<dynamic> decoded = jsonDecode(jsonSub);
         return decoded
             .map((e) => e.toString().toLowerCase().trim())
-            .where((e) => e.isNotEmpty && !e.startsWith('[') && !e.endsWith(']'))
+            .where((e) =>
+                e.isNotEmpty &&
+                !e.startsWith('[') &&
+                !e.endsWith(']') &&
+                !_ignoredVisionStaples.contains(e))
             .toSet()
             .toList();
       }

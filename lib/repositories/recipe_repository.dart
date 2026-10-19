@@ -1,8 +1,18 @@
 import 'package:flutter/foundation.dart';
+import '../core/ingredient_matcher.dart';
 import '../../core/supabase_client.dart';
 import '../../models/recipe.dart';
 
 class RecipeRepository {
+  static final RegExp _devanagariRegex = RegExp(r'[\u0900-\u097F]');
+
+  /// Filters recipes to prevent mixing Hindi script cards into English experience
+  static List<Recipe> filterByLocale(List<Recipe> recipes, {String languageCode = 'en'}) {
+    if (languageCode == 'en') {
+      return recipes.where((r) => !_devanagariRegex.hasMatch(r.title)).toList();
+    }
+    return recipes;
+  }
   // Built-in curated recipes from Cleaned_Indian_Food_Dataset for offline fallback & instant start
   static final List<Recipe> fallbackRecipes = [
     const Recipe(
@@ -212,8 +222,8 @@ class RecipeRepository {
       final res = await q.order('id').range(start, end);
 
       if (res.isNotEmpty) {
-        final list = parseRows(res);
-        if (list.isNotEmpty) return list;
+        final list = filterByLocale(parseRows(res));
+        if (list.isNotEmpty) return list.take(limit).toList();
       }
     } catch (e) {
       debugPrint('fetchTrendingRecipes Supabase error: $e');
@@ -223,7 +233,7 @@ class RecipeRepository {
     final fallback = diet != null
         ? fallbackRecipes.where((r) => r.diet == diet).toList()
         : List<Recipe>.from(fallbackRecipes);
-    return fallback.take(limit).toList();
+    return filterByLocale(fallback).take(limit).toList();
   }
 
   Future<List<Recipe>> fetchQuickRecipes({
@@ -253,8 +263,8 @@ class RecipeRepository {
       final res = await q.order('total_time_mins', ascending: true).range(start, end);
 
       if (res.isNotEmpty) {
-        final list = parseRows(res);
-        if (list.isNotEmpty) return list;
+        final list = filterByLocale(parseRows(res));
+        if (list.isNotEmpty) return list.take(limit).toList();
       }
     } catch (e) {
       debugPrint('fetchQuickRecipes Supabase error: $e');
@@ -263,7 +273,7 @@ class RecipeRepository {
     final fallback = fallbackRecipes
         .where((r) => r.totalTimeMins <= maxMinutes && (diet == null || r.diet == diet))
         .toList();
-    return fallback.take(limit).toList();
+    return filterByLocale(fallback).take(limit).toList();
   }
 
   /// Extracts natural language intent (time limits, diets, and clean search keywords).
@@ -357,7 +367,7 @@ class RecipeRepository {
       return matchesQuery && matchesTime && matchesCuisine && matchesDiet;
     }).toList();
 
-    // Rank by relevance if query provided, else sort alphabetically
+    // Rank by relevance if query provided, else rank contextually
     if (lowerQuery.isNotEmpty) {
       filtered.sort((a, b) {
         int scoreA = 0;
@@ -373,7 +383,20 @@ class RecipeRepository {
         return a.title.toLowerCase().compareTo(b.title.toLowerCase());
       });
     } else {
-      filtered.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+      final hour = DateTime.now().hour;
+      filtered.sort((a, b) {
+        int scoreA = 0;
+        int scoreB = 0;
+        if (hour >= 6 && hour < 11) {
+          if (a.totalTimeMins <= 25) scoreA += 3;
+          if (b.totalTimeMins <= 25) scoreB += 3;
+        }
+        scoreA += ((a.rating ?? 4.0) * 2).toInt();
+        scoreB += ((b.rating ?? 4.0) * 2).toInt();
+        final comp = scoreB.compareTo(scoreA);
+        if (comp != 0) return comp;
+        return a.title.toLowerCase().compareTo(b.title.toLowerCase());
+      });
     }
 
     return filtered;
@@ -408,6 +431,8 @@ class RecipeRepository {
   }) async {
     if (userIngredients.isEmpty) return [];
 
+    final normUser = userIngredients.map((u) => u.trim()).where((u) => u.isNotEmpty).toList();
+
     try {
       // Call PostgreSQL RPC function
       final res = await SupabaseService.client.rpc(
@@ -421,20 +446,35 @@ class RecipeRepository {
       );
 
       if (res is List) {
-        return parseRows(res);
+        final parsed = parseRows(res);
+        final validated = parsed.map((r) {
+          final matchedList = r.cleanedIngredients.where((ing) {
+            return normUser.any((u) => IngredientMatcher.isMatch(userItem: u, recipeIngredient: ing));
+          }).toList();
+          if (matchedList.isEmpty) return null;
+          final missingList = r.cleanedIngredients.where((ing) => !matchedList.contains(ing)).toList();
+          final pct = (matchedList.length / r.cleanedIngredients.length) * 100.0;
+          return r.copyWith(
+            matchedIngredients: matchedList,
+            missingIngredients: missingList,
+            matchPercentage: pct,
+          );
+        }).whereType<Recipe>().toList();
+        if (validated.isNotEmpty) {
+          validated.sort((a, b) => b.matchPercentage.compareTo(a.matchPercentage));
+          return validated;
+        }
       }
     } catch (e) {
       debugPrint('matchRecipes RPC Supabase error: $e');
     }
 
     // Client-side local matching fallback
-    final normUser = userIngredients.map((u) => u.trim().toLowerCase()).toList();
     List<Recipe> matched = [];
 
     for (var r in fallbackRecipes) {
       final matchedList = r.cleanedIngredients.where((ing) {
-        final lower = ing.toLowerCase();
-        return normUser.any((u) => lower.contains(u) || u.contains(lower));
+        return normUser.any((u) => IngredientMatcher.isMatch(userItem: u, recipeIngredient: ing));
       }).toList();
 
       if (matchedList.isNotEmpty) {

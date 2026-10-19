@@ -120,7 +120,7 @@ Return ONLY a valid JSON array of objects with the following schema:
     } catch (e) {
       debugPrint('Gemini substitutions fallback error: $e');
       for (var u in unhandled) {
-        resolved.add(SubstitutionService.createSmartFallback(u));
+        resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
     }
 

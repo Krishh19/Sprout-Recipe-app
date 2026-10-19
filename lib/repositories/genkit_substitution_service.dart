@@ -71,7 +71,7 @@ class GenkitSubstitutionService implements SubstitutionService {
     // If API key is not configured or all items were matched offline, provide smart fallbacks
     if (_apiKey.isEmpty || unhandled.isEmpty) {
       for (var u in unhandled) {
-        resolved.add(SubstitutionService.createSmartFallback(u));
+        resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
       return resolved;
     }
@@ -95,6 +95,7 @@ Missing ingredients: ${unhandled.join(', ')}
         final mapped = mapAndValidateSubstitutions(
           output.substitutions,
           unhandled,
+          recipeTitle: recipeTitle,
         );
         resolved.addAll(mapped);
       } else {
@@ -105,7 +106,7 @@ Missing ingredients: ${unhandled.join(', ')}
           resolved.addAll(parsedFromText);
         } else {
           for (var u in unhandled) {
-            resolved.add(SubstitutionService.createSmartFallback(u));
+            resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
           }
         }
       }
@@ -114,7 +115,7 @@ Missing ingredients: ${unhandled.join(', ')}
       debugPrint('Genkit substitutions provider error: ${e.runtimeType}');
       // Graceful fallback to smart culinary heuristics
       for (var u in unhandled) {
-        resolved.add(SubstitutionService.createSmartFallback(u));
+        resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
     }
 
@@ -124,8 +125,9 @@ Missing ingredients: ${unhandled.join(', ')}
   /// Validates and maps typed schema outputs into the Sprout domain model
   static List<SubstitutionModel> mapAndValidateSubstitutions(
     List<SubstitutionOutputItem> items,
-    List<String> unhandled,
-  ) {
+    List<String> unhandled, {
+    String recipeTitle = '',
+  }) {
     final result = <SubstitutionModel>[];
     final coveredIngredients = <String>{};
 
@@ -157,7 +159,7 @@ Missing ingredients: ${unhandled.join(', ')}
       if (!coveredIngredients.any(
         (c) => c.contains(lower) || lower.contains(c),
       )) {
-        result.add(SubstitutionService.createSmartFallback(u));
+        result.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
     }
 

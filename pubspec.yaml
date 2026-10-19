@@ -60,6 +60,8 @@ dependencies:
   flutter_secure_storage: ^11.2.0
   http: ^1.6.0
   audioplayers: ^6.8.1
+  animations: ^2.0.11
+  skeletonizer: ^1.4.3
 
 dev_dependencies:
   flutter_test:

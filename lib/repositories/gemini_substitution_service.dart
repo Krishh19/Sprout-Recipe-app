@@ -50,7 +50,7 @@ class GeminiSubstitutionService implements SubstitutionService {
     // If Gemini key is not configured or all items were matched offline, provide smart fallbacks for remaining
     if (_apiKey.isEmpty || unhandled.isEmpty) {
       for (var u in unhandled) {
-        resolved.add(SubstitutionService.createSmartFallback(u));
+        resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
       return resolved;
     }
@@ -97,14 +97,14 @@ Return ONLY a valid JSON array of objects with the following schema:
         resolved.addAll(aiSubs);
       } else {
         for (var u in unhandled) {
-          resolved.add(SubstitutionService.createSmartFallback(u));
+          resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
         }
       }
     } catch (e) {
       debugPrint('Gemini Substitutions error: $e');
       // Intelligent culinary fallback for unhandled ingredients
       for (var u in unhandled) {
-        resolved.add(SubstitutionService.createSmartFallback(u));
+        resolved.add(SubstitutionService.createSmartFallback(u, recipeTitle: recipeTitle));
       }
     }
 

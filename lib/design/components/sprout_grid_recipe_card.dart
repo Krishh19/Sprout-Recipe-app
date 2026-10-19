@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/recipe.dart';
@@ -17,6 +18,7 @@ class SproutGridRecipeCard extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteToggle;
   final String heroTagPrefix;
+  final Widget Function(BuildContext, VoidCallback)? openBuilder;
 
   const SproutGridRecipeCard({
     super.key,
@@ -24,6 +26,7 @@ class SproutGridRecipeCard extends StatefulWidget {
     this.onTap,
     this.onFavoriteToggle,
     this.heroTagPrefix = 'recipe_image_explore',
+    this.openBuilder,
   });
 
   @override
@@ -66,47 +69,43 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
-    final isVegetarian = widget.recipe.diet.toLowerCase() == 'veg' ||
+    final isVeg = widget.recipe.diet.toLowerCase() == 'veg' ||
         widget.recipe.diet.toLowerCase() == 'vegetarian';
+    final isEgg = widget.recipe.diet.toLowerCase() == 'egg';
+    final dotColor = isVeg
+        ? const Color(0xFF2E7D32)
+        : (isEgg ? const Color(0xFFE65100) : const Color(0xFFE53935));
+
     final nutrition = NutritionService.calculateHeuristicNutrition(widget.recipe);
 
     final badgeText = nutrition.calories > 0
         ? '${nutrition.calories} kcal'
         : (widget.recipe.totalTimeMins > 0 ? '${widget.recipe.totalTimeMins} min' : '20 min');
 
-    return Semantics(
-      container: true,
-      button: widget.onTap != null,
-      label: 'Recipe: ${widget.recipe.title}, ${widget.recipe.cuisine}',
-      child: GestureDetector(
-        onTap: () {
-          SproutHaptics.light();
-          widget.onTap?.call();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1:1 Aspect Ratio Image Container with Overlays
-            AspectRatio(
-              aspectRatio: 1.0,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Base Rounded Image
-                  Hero(
-                    tag: '${widget.heroTagPrefix}_${widget.recipe.id}',
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: SproutRecipeImage(
-                        imageUrl: widget.recipe.imageUrl,
-                        cuisine: widget.recipe.cuisine,
-                        title: widget.recipe.title,
-                        fit: BoxFit.cover,
-                      ),
+    Widget cardContent(VoidCallback? openAction) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 1:1 Aspect Ratio Image Container with Overlays
+          AspectRatio(
+            aspectRatio: 1.0,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // Base Rounded Image
+                Hero(
+                  tag: '${widget.heroTagPrefix}_${widget.recipe.id}',
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: SproutRecipeImage(
+                      imageUrl: widget.recipe.imageUrl,
+                      cuisine: widget.recipe.cuisine,
+                      title: widget.recipe.title,
+                      fit: BoxFit.cover,
                     ),
                   ),
+                ),
 
                   // Top-Right Frosted Glass Favorite Button
                   Positioned(
@@ -241,9 +240,7 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
                   height: 6,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isVegetarian
-                        ? const Color(0xFF2E7D32)
-                        : const Color(0xFFE53935),
+                    color: dotColor,
                   ),
                 ),
                 const SizedBox(width: 5),
@@ -265,7 +262,38 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
               ],
             ),
           ],
+        );
+      }
+
+    if (widget.openBuilder != null) {
+      return Semantics(
+        container: true,
+        button: true,
+        label: 'Recipe: ${widget.recipe.title}, ${widget.recipe.cuisine}',
+        child: OpenContainer(
+          closedElevation: 0,
+          closedColor: Colors.transparent,
+          openElevation: 0,
+          openColor: Theme.of(context).scaffoldBackgroundColor,
+          middleColor: Theme.of(context).scaffoldBackgroundColor,
+          transitionDuration: const Duration(milliseconds: 380),
+          closedBuilder: (context, action) => cardContent(action),
+          openBuilder: (context, action) => widget.openBuilder!(context, action),
         ),
+      );
+    }
+
+    return Semantics(
+      container: true,
+      button: widget.onTap != null,
+      label: 'Recipe: ${widget.recipe.title}, ${widget.recipe.cuisine}',
+      child: GestureDetector(
+        onTap: () {
+          SproutHaptics.light();
+          widget.onTap?.call();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: cardContent(null),
       ),
     );
   }

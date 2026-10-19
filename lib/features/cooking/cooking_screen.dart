@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../design/colors.dart';
@@ -38,7 +37,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   final GeminiTtsService _geminiTts = GeminiTtsService();
-  final FlutterTts _flutterTts = FlutterTts();
   int _currentStep = 0;
   bool _isSpeaking = false;
   bool _isSynthesizingTts = false;
@@ -80,7 +78,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     final isSourceHindi = RecipeTranslationService.isRecipeHindi(widget.recipe);
     _currentLanguage = isSourceHindi ? 'hi' : 'en';
 
-    _initFlutterTts();
     _initVoiceBargeIn();
     _restoreSession();
     _prefetchTts(0);
@@ -93,9 +90,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     _voiceCookingService.onBargeIn = () async {
       if (_isSpeaking || _isSynthesizingTts) {
         await _geminiTts.stopAudio();
-        try {
-          await _flutterTts.stop();
-        } catch (_) {}
         if (mounted) {
           setState(() {
             _isSpeaking = false;
@@ -106,37 +100,11 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     };
   }
 
-  void _initFlutterTts() {
-    try {
-      _flutterTts.setCompletionHandler(() async {
-        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-        if (mounted) {
-          setState(() {
-            _isSpeaking = false;
-            _isSynthesizingTts = false;
-          });
-        }
-      });
-      _flutterTts.setErrorHandler((_) async {
-        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-        if (mounted) {
-          setState(() {
-            _isSpeaking = false;
-            _isSynthesizingTts = false;
-          });
-        }
-      });
-    } catch (_) {}
-  }
-
   @override
   void dispose() {
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     _geminiTts.stopAudio();
-    try {
-      _flutterTts.stop();
-    } catch (_) {}
     _voiceCookingService.stopListening();
     _countdownTimer?.cancel();
     _voiceFeedbackTimer?.cancel();
@@ -208,9 +176,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     // If currently speaking or synthesizing, stop immediately
     if (_isSpeaking || _isSynthesizingTts) {
       await _geminiTts.stopAudio();
-      try {
-        await _flutterTts.stop();
-      } catch (_) {}
       await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
       if (mounted) {
         setState(() {
@@ -231,7 +196,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     setState(() => _isSynthesizingTts = true);
 
     try {
-      // High-fidelity human conversational Gemini AI voice with Kore voice (Hindi/English)
+      // High-fidelity human conversational Gemini AI voice with Aoede voice (Hindi/English)
       final audioPath = await _geminiTts.getOrSynthesizeSpeech(
         text: stepText,
         recipeId: widget.recipe.id,
@@ -254,38 +219,16 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
           },
         );
       } else {
-        // Fallback to local device TTS via flutter_tts with hi-IN for Hindi (strictly offline backup)
-        setState(() => _isSpeaking = true);
-        if (isHindi) {
-          try {
-            await _flutterTts.setLanguage("hi-IN");
-            await _flutterTts.setSpeechRate(0.48);
-          } catch (_) {}
-        } else {
-          try {
-            await _flutterTts.setLanguage("en-US");
-            await _flutterTts.setSpeechRate(0.5);
-          } catch (_) {}
-        }
-        await _flutterTts.speak(stepText);
+        _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
+        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+        if (mounted) setState(() => _isSpeaking = false);
       }
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSynthesizingTts = false);
-      try {
-        setState(() => _isSpeaking = true);
-        if (isHindi) {
-          await _flutterTts.setLanguage("hi-IN");
-          await _flutterTts.setSpeechRate(0.48);
-        } else {
-          await _flutterTts.setLanguage("en-US");
-          await _flutterTts.setSpeechRate(0.5);
-        }
-        await _flutterTts.speak(stepText);
-      } catch (_) {
-        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-        if (mounted) setState(() => _isSpeaking = false);
-      }
+      _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
+      await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+      if (mounted) setState(() => _isSpeaking = false);
     }
   }
 
@@ -307,9 +250,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
       await _voiceCookingService.interruptTtsAndStartListening(
         stopTtsCallback: () async {
           await _geminiTts.stopAudio();
-          try {
-            await _flutterTts.stop();
-          } catch (_) {}
           if (mounted) {
             setState(() {
               _isSpeaking = false;
@@ -418,9 +358,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
         if (_isTimerRunning) _toggleTimer();
         if (_isSpeaking || _isSynthesizingTts) {
           _geminiTts.stopAudio();
-          try {
-            _flutterTts.stop();
-          } catch (_) {}
           setState(() {
             _isSpeaking = false;
             _isSynthesizingTts = false;
@@ -488,13 +425,9 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
             },
           );
         } else {
-          try {
-            setState(() => _isSpeaking = true);
-            await _flutterTts.speak(answer);
-          } catch (_) {
-            await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-            if (mounted) setState(() => _isSpeaking = false);
-          }
+          _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
+          await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+          if (mounted) setState(() => _isSpeaking = false);
         }
       } else {
         setState(() {
@@ -763,9 +696,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     _prefetchTts(index + 1);
     if (_isSpeaking) {
       _geminiTts.stopAudio();
-      try {
-        _flutterTts.stop();
-      } catch (_) {}
       _voiceCookingService.setNarrating(false);
       _isSpeaking = false;
       _speakCurrentStep();
@@ -1927,12 +1857,10 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
       return const SizedBox.shrink();
     }
 
-    return Positioned(
-      top: 54,
-      left: 16,
-      right: 16,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Material(
-        elevation: 10,
+        elevation: 6,
         borderRadius: BorderRadius.circular(20),
         color: Colors.transparent,
         child: ClipRRect(
@@ -2010,9 +1938,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                           });
                           if (_isSpeaking) {
                             _geminiTts.stopAudio();
-                            try {
-                              _flutterTts.stop();
-                            } catch (_) {}
                             setState(() => _isSpeaking = false);
                           }
                           if (_isVoiceListening) {
@@ -2330,6 +2255,19 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
               ),
               const SizedBox(height: 8),
 
+              // Assistant Voice Banner in layout flow (Smooth AnimatedSize, never obscures top bar)
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                child: _buildFloatingVoiceOverlay(
+                  surfaceColor: surfaceColor,
+                  borderColor: borderColor,
+                  primaryTextColor: primaryTextColor,
+                  secondaryTextColor: secondaryTextColor,
+                  accentColor: accentColor,
+                ),
+              ),
+
               // Morphed Sticky Top Timer
               if (_isTimerMorphedToTop && (_timerTotalSeconds > 0 || _isTimerRunning))
                 _buildMorphedTopTimer(
@@ -2435,70 +2373,15 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                                             borderColor,
                                           );
                                         },
-                                        child: LayoutBuilder(
-                                          builder: (context, constraints) {
-                                            final textStyle = SproutTypography.body(
-                                              color: primaryTextColor,
-                                            ).copyWith(
-                                              fontSize: 17,
-                                              height: 1.58,
-                                              fontWeight: FontWeight.w500,
-                                            );
-
-                                            final span = TextSpan(
-                                              text: cleanedStepText,
-                                              style: textStyle,
-                                            );
-                                            final tp = TextPainter(
-                                              text: span,
-                                              maxLines: 3,
-                                              textDirection: Directionality.of(context),
-                                            )..layout(maxWidth: constraints.maxWidth);
-
-                                            final didExceed = tp.didExceedMaxLines;
-
-                                            return Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                AnimatedSize(
-                                                  duration: const Duration(milliseconds: 250),
-                                                  curve: Curves.easeInOut,
-                                                  child: Text(
-                                                    cleanedStepText,
-                                                    maxLines: didExceed ? 3 : null,
-                                                    overflow: didExceed ? TextOverflow.ellipsis : TextOverflow.visible,
-                                                    style: textStyle,
-                                                  ),
-                                                ),
-                                                if (didExceed) ...[
-                                                  const SizedBox(height: 10),
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: accentColor.withValues(alpha: 0.08),
-                                                      borderRadius: BorderRadius.circular(12),
-                                                      border: Border.all(color: accentColor.withValues(alpha: 0.2)),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(Icons.open_in_full_rounded, size: 11, color: accentColor),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          'Tap to expand',
-                                                          style: TextStyle(
-                                                            color: accentColor,
-                                                            fontSize: 11,
-                                                            fontWeight: FontWeight.w700,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ],
-                                            );
-                                          },
+                                        child: Text(
+                                          cleanedStepText,
+                                          style: SproutTypography.body(
+                                            color: primaryTextColor,
+                                          ).copyWith(
+                                            fontSize: 17,
+                                            height: 1.58,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -2612,15 +2495,6 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                 ),
               ),
             ],
-          ),
-
-          // Floating Ask Sprout Voice Overlay (Zero Layout Shift)
-          _buildFloatingVoiceOverlay(
-            surfaceColor: surfaceColor,
-            borderColor: borderColor,
-            primaryTextColor: primaryTextColor,
-            secondaryTextColor: secondaryTextColor,
-            accentColor: accentColor,
           ),
         ],
       ),

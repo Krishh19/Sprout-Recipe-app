@@ -30,7 +30,7 @@ void main() {
     test('GeminiTtsService provides requested voiceDirection metadata', () {
       expect(GeminiTtsService.voiceDirection.contains('conversational voice'), isTrue);
       expect(GeminiTtsService.voiceDirection.contains('gentle, medium-to-high pitch'), isTrue);
-      expect(GeminiTtsService.selectedVoice, equals('Kore'));
+      expect(GeminiTtsService.selectedVoice, equals('Aoede'));
     });
   });
 }

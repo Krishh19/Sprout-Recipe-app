@@ -82,8 +82,8 @@ void main() {
     expect(find.text('Next Step →'), findsOneWidget);
   });
 
-  testWidgets('CookingScreen displays Tap to expand when instruction exceeds 3 lines', (tester) async {
-    // Set constrained mobile width (e.g. 360) so long text exceeds 3 lines
+  testWidgets('CookingScreen displays full instruction text without premature 3-line clamping', (tester) async {
+    // Set constrained mobile width (e.g. 360)
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() {
@@ -120,7 +120,11 @@ void main() {
     expect(find.text('🔥 Medium Flame'), findsOneWidget);
     expect(find.text('Dosa Batter'), findsOneWidget);
 
-    // Verify 'Tap to expand' pill IS visible when instruction exceeds 3 lines
-    expect(find.text('Tap to expand'), findsOneWidget);
+    // Verify full instruction text is rendered without premature truncation
+    expect(find.textContaining('Preheat a dosa tawa over medium heat'), findsOneWidget);
+    expect(find.textContaining('wait for edges to lift crisp and golden brown'), findsOneWidget);
+
+    // Verify 'Tap to expand' pill is no longer needed since full text is displayed
+    expect(find.text('Tap to expand'), findsNothing);
   });
 }

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/ingredient_matcher.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_button.dart';
@@ -797,7 +798,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
                           unselectedLabelColor: SproutColors.muted,
                           labelStyle: SproutTypography.bodyBold().copyWith(fontSize: 14),
                           unselectedLabelStyle: SproutTypography.body().copyWith(fontSize: 14),
-                          labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                          labelPadding: const EdgeInsets.symmetric(horizontal: 8),
                           dividerColor: Colors.transparent,
                           tabs: const [
                             Tab(text: 'Ingredients'),
@@ -1076,17 +1077,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
 
   List<Widget> _buildSplitIngredients(List<String> missing, double scale) {
     final pantry = ref.watch(pantryProvider).value ?? [];
-    final normPantry = pantry.map((e) => e.toLowerCase()).toList();
+    final normPantry = pantry.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
 
     bool isHave(String ing) {
-      final lower = ing.toLowerCase();
-      return normPantry.any((p) => lower.contains(p) || p.contains(lower));
+      return normPantry.any((p) => IngredientMatcher.isMatch(userItem: p, recipeIngredient: ing));
     }
 
     bool isMissing(String ing) => missing.any(
           (m) =>
-              ing.toLowerCase().contains(m.toLowerCase()) ||
-              m.toLowerCase().contains(ing.toLowerCase()),
+              IngredientMatcher.isMatch(userItem: m, recipeIngredient: ing) ||
+              IngredientMatcher.isMatch(userItem: ing, recipeIngredient: m),
         );
 
     // Only split when we actually have pantry data; otherwise single flat list

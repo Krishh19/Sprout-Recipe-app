@@ -71,7 +71,7 @@ class SproutRecipeImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        memCacheWidth: isDetail ? 1200 : 600,
+        memCacheWidth: isDetail ? 1200 : (width != null && width! <= 200 ? 300 : 500),
         fadeInDuration: const Duration(milliseconds: 250),
         fadeInCurve: Curves.easeOut,
         placeholder: (context, _) => Shimmer.fromColors(
