@@ -157,9 +157,13 @@ class ScannerTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
-      child: Row(
+    return SafeArea(
+      bottom: false,
+      left: true,
+      right: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 8),
+        child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Sprout Wordmark
@@ -279,6 +283,7 @@ class ScannerTopBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

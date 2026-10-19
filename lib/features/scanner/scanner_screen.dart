@@ -257,9 +257,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     final scannerState = ref.watch(scannerProvider);
 
     return SproutScaffold(
-      body: SafeArea(
-        bottom: false, // let content scroll beneath the glass nav bar
-        child: CustomScrollView(
+      backgroundColor: Colors.transparent,
+      body: CustomScrollView(
           controller: _scrollController,
           physics: _isAnalyzing
               ? const NeverScrollableScrollPhysics()
@@ -666,8 +665,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
             ],
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildModeTab({

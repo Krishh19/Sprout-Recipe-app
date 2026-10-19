@@ -94,8 +94,9 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        // Let content scroll beneath the translucent glass nav bar
+        // Let content scroll beneath the translucent glass nav bar and behind status bar
         extendBody: true,
+        extendBodyBehindAppBar: true,
         body: NotificationListener<UserScrollNotification>(
           onNotification: (notification) {
             if (notification.metrics.axis != Axis.vertical) return false;

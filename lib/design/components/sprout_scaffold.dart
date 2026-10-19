@@ -12,6 +12,7 @@ class SproutScaffold extends StatelessWidget {
   final bool showStatusBarScrim;
   final Gradient? backgroundGradient;
   final bool extendBody;
+  final bool extendBodyBehindAppBar;
 
   const SproutScaffold({
     super.key,
@@ -24,12 +25,13 @@ class SproutScaffold extends StatelessWidget {
     this.showStatusBarScrim = false,
     this.backgroundGradient,
     this.extendBody = false,
+    this.extendBodyBehindAppBar = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     final topPadding = MediaQuery.paddingOf(context).top;
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     final bg = backgroundColor ?? SproutColors.canvas;
     final effectiveGradient = backgroundGradient ??
         (backgroundColor == null ? SproutColors.backgroundGradient : null);
@@ -72,6 +74,7 @@ class SproutScaffold extends StatelessWidget {
       backgroundColor: effectiveGradient != null ? Colors.transparent : bg,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       extendBody: extendBody,
+      extendBodyBehindAppBar: extendBodyBehindAppBar,
       appBar: appBar,
       body: effectiveGradient != null
           ? Stack(

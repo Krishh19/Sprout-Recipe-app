@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/tutorial/tutorial_manager.dart';
 import '../../core/tutorial/tutorial_steps.dart';
 import '../../design/colors.dart';
-import '../../design/components/sprout_blur_header.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_hero_card.dart';
 import '../../design/components/sprout_metallic_text.dart';
@@ -65,83 +64,89 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final quickAsync = ref.watch(quickRecipesProvider);
     final cookHistory = ref.watch(cookHistoryProvider).value ?? [];
 
+    final topPadding = MediaQuery.paddingOf(context).top;
+
     return SproutScaffold(
-      body: SafeArea(
-        bottom: false, // let content scroll beneath the glass nav bar
-        child: SproutScrollShadowWrapper(
-          child: RefreshIndicator(
-            color: SproutColors.sproutGreen,
-            backgroundColor: SproutColors.surface,
-            onRefresh: () async {
-              ref.invalidate(trendingRecipesProvider);
-              ref.invalidate(quickRecipesProvider);
-              await Future.wait([
-                ref.read(trendingRecipesProvider.future),
-                ref.read(quickRecipesProvider.future),
-              ]);
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              // Bottom inset accounts for the translucent nav bar so the
-              // final section is never trapped underneath it.
-              padding: const EdgeInsets.only(bottom: 124),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header & Greeting
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _getGreeting(),
-                                style: SproutTypography.body(
-                                  color: SproutColors.secondaryInk,
-                                  fontWeight: FontWeight.w700,
-                                ).copyWith(fontSize: 15),
-                              ),
-                          const SizedBox(height: 6),
-                          SproutMetallicHeading(
-                            'What are we cooking today?',
-                            style: SproutTypography.h2().copyWith(fontSize: 26),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Sprout Mascot waving badge
-                    Container(
-                      width: 52,
-                      height: 52,
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: SproutColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: SproutColors.sage.withValues(alpha: 0.3),
-                          width: 1.5,
+      backgroundColor: Colors.transparent,
+      body: RefreshIndicator(
+        color: SproutColors.sproutGreen,
+        backgroundColor: SproutColors.surface,
+        edgeOffset: topPadding,
+        onRefresh: () async {
+          ref.invalidate(trendingRecipesProvider);
+          ref.invalidate(quickRecipesProvider);
+          await Future.wait([
+            ref.read(trendingRecipesProvider.future),
+            ref.read(quickRecipesProvider.future),
+          ]);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          // Bottom inset accounts for the translucent nav bar so the
+          // final section is never trapped underneath it.
+          padding: const EdgeInsets.only(bottom: 124),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header & Greeting safely inset from the top status bar / camera cutout
+              SafeArea(
+                bottom: false,
+                left: true,
+                right: true,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getGreeting(),
+                              style: SproutTypography.body(
+                                color: SproutColors.secondaryInk,
+                                fontWeight: FontWeight.w700,
+                              ).copyWith(fontSize: 15),
+                            ),
+                            const SizedBox(height: 6),
+                            SproutMetallicHeading(
+                              'What are we cooking today?',
+                              style: SproutTypography.h2().copyWith(fontSize: 26),
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: SproutColors.primaryInk.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
+                      ),
+                      const SizedBox(width: 12),
+                      // Sprout Mascot waving badge
+                      Container(
+                        width: 52,
+                        height: 52,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: SproutColors.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: SproutColors.sage.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
-                        ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: SproutColors.primaryInk.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          SproutAssets.mascotWave,
+                          fit: BoxFit.contain,
+                        ),
                       ),
-                      child: Image.asset(
-                        SproutAssets.mascotWave,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -529,10 +534,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   Widget _buildSectionHeader({
     required String title,

@@ -292,16 +292,21 @@ class ProfileScreen extends ConsumerWidget {
         (themeMode == ThemeMode.system && platformDark);
 
     return SproutScaffold(
-      body: SafeArea(
-        bottom: false, // let content scroll beneath the glass nav bar
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card with Artisanal Banner Collage
-              Container(
-                width: double.infinity,
+      backgroundColor: Colors.transparent,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Card with Artisanal Banner Collage safely inset from top status bar
+            SafeArea(
+              bottom: false,
+              left: true,
+              right: true,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Container(
+                  width: double.infinity,
                 decoration: BoxDecoration(
                   color: SproutColors.surface,
                   borderRadius: SproutRadii.card,
@@ -463,6 +468,8 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+            ),
+          ),
               const SizedBox(height: 24),
 
               // Cooking Rhythm Insight
@@ -622,7 +629,6 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
         ),
-      ),
     );
   }
 

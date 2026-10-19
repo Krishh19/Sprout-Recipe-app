@@ -120,14 +120,17 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
     final collectionsAsync = ref.watch(collectionsProvider);
 
     return SproutScaffold(
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: false,
-      body: SafeArea(
-        bottom: false, // let content scroll beneath the glass nav bar
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Screen Title & Action
-            Padding(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Screen Title & Action
+          SafeArea(
+            bottom: false,
+            left: true,
+            right: true,
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -142,6 +145,7 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
                 ],
               ),
             ),
+          ),
 
             // Tab Bar
             Container(
@@ -383,7 +387,6 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
             ),
           ),
         ],
-        ),
       ),
     );
   }

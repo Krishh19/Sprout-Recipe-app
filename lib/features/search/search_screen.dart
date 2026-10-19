@@ -357,31 +357,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final hasActiveFilters = _selectedMaxTime != null || _selectedCuisine != null;
     final headerHeight = hasActiveFilters ? 162.0 : 120.0;
 
+    final topPadding = MediaQuery.paddingOf(context).top;
+
     return SproutScaffold(
-      body: SafeArea(
-        bottom: false, // let content scroll beneath the glass nav bar
-        child: RefreshIndicator(
-          color: SproutColors.sproutGreen,
-          backgroundColor: SproutColors.surface,
-          onRefresh: _performSearch,
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(
-              parent: BouncingScrollPhysics(),
-            ),
-            slivers: [
-              // Collapsible Floating Header: Search bar + quick category filter pills
-              SliverAppBar(
-                floating: true,
-                snap: true,
-                pinned: false,
-                primary: false,
-                automaticallyImplyLeading: false,
-                elevation: 0,
-                backgroundColor: (isDark ? SproutColors.nightSkyTop : SproutColors.lightSkyTop)
-                    .withValues(alpha: 0.96),
-                surfaceTintColor: Colors.transparent,
-                toolbarHeight: headerHeight,
+      backgroundColor: Colors.transparent,
+      body: RefreshIndicator(
+        color: SproutColors.sproutGreen,
+        backgroundColor: SproutColors.surface,
+        edgeOffset: topPadding,
+        onRefresh: _performSearch,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
+            // Collapsible Floating Header: Search bar + quick category filter pills
+            SliverAppBar(
+              floating: true,
+              snap: true,
+              pinned: false,
+              primary: true,
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              backgroundColor: (isDark ? SproutColors.nightSkyTop : SproutColors.lightSkyTop)
+                  .withValues(alpha: 0.96),
+              surfaceTintColor: Colors.transparent,
+              toolbarHeight: headerHeight,
                 titleSpacing: 0,
                 title: SizedBox(
                   height: headerHeight,
@@ -649,7 +651,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ],
           ),
         ),
-      ),
     );
   }
 }
