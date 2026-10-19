@@ -550,54 +550,74 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               const SizedBox(height: 28),
 
-              // Menu Options
-              SproutMetallicHeading('Account & Preferences', style: SproutTypography.h3()),
-              const SizedBox(height: 12),
-              _buildMenuItem(
-                icon: Icons.calendar_month_rounded,
-                title: 'Weekly Meal Planner',
-                subtitle: 'Plan 7-day meals & auto-generate groceries',
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MealPlannerScreen()),
-                ),
+              // Mockup Card 1: Core Navigation Tabs (matching mockup image)
+              _buildGroupedCard(
+                isDark: isDark,
+                items: [
+                  _buildMockupRowItem(
+                    icon: Icons.menu_book_outlined,
+                    title: 'My Recipes',
+                    onTap: () {
+                      if (onTabSwitch != null) {
+                        onTabSwitch!(3);
+                      } else {
+                        _showCookHistorySheet(context, cookHistory);
+                      }
+                    },
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.shopping_bag_outlined,
+                    title: 'Shopping List',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const ShoppingListScreen()),
+                    ),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.speed_outlined,
+                    title: 'Nutrition Goals',
+                    onTap: () => _showNutritionGoalsSheet(context),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.notifications_none_rounded,
+                    title: 'Reminders',
+                    onTap: () => _showRemindersSheet(context),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.settings_outlined,
+                    title: 'Settings',
+                    showDivider: false,
+                    onTap: () => _showSettingsSheet(context, ref),
+                  ),
+                ],
               ),
-              _buildMenuItem(
-                icon: Icons.kitchen_rounded,
-                title: 'Kitchen Staples',
-                subtitle: 'Salt, oil, spices you always have in stock',
-                onTap: () => PantryStaplesSheet.show(context),
-              ),
-              _buildMenuItem(
-                icon: Icons.shopping_bag_outlined,
-                title: 'Grocery List',
-                subtitle: 'Ingredients to pick up',
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ShoppingListScreen()),
-                ),
-              ),
-              _buildMenuItem(
-                icon: Icons.history_rounded,
-                title: 'Cook History',
-                subtitle: 'Dishes made with Sprout',
-                onTap: () => _showCookHistorySheet(context, cookHistory),
-              ),
-              _buildMenuItem(
-                icon: Icons.contrast_rounded,
-                title: 'Appearance & Theme',
-                subtitle: _getThemeSubtitle(ref.watch(themeModeProvider)),
-                onTap: () => _showThemeModeSheet(context, ref),
-              ),
-              _buildMenuItem(
-                icon: Icons.help_outline_rounded,
-                title: 'About Sprout',
-                subtitle: 'Sprout version 1.0.0 · Artisanal AI Companion',
-                onTap: () => _showAboutSproutSheet(context),
-              ),
-              _buildMenuItem(
-                icon: Icons.description_outlined,
-                title: 'Terms & Conditions',
-                subtitle: 'Usage terms, culinary disclaimers & privacy policy',
-                onTap: () => _showTermsAndConditionsSheet(context),
+              const SizedBox(height: 18),
+
+              // Mockup Card 2: Kitchen & Legal Information
+              _buildGroupedCard(
+                isDark: isDark,
+                items: [
+                  _buildMockupRowItem(
+                    icon: Icons.kitchen_rounded,
+                    title: 'Kitchen Staples',
+                    onTap: () => PantryStaplesSheet.show(context),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.history_rounded,
+                    title: 'Cook History',
+                    onTap: () => _showCookHistorySheet(context, cookHistory),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.info_outline_rounded,
+                    title: 'About Sprout',
+                    onTap: () => _showAboutSproutSheet(context),
+                  ),
+                  _buildMockupRowItem(
+                    icon: Icons.description_outlined,
+                    title: 'Terms & Conditions',
+                    showDivider: false,
+                    onTap: () => _showTermsAndConditionsSheet(context),
+                  ),
+                ],
               ),
             ],
           ),
@@ -789,68 +809,492 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    VoidCallback? onTap,
+  Widget _buildGroupedCard({
+    required List<Widget> items,
+    required bool isDark,
   }) {
-    final item = Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
+    return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: SproutColors.surface,
-        borderRadius: SproutRadii.card,
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: SproutColors.sage.withValues(alpha: 0.18),
+          color: SproutColors.sage.withValues(alpha: isDark ? 0.22 : 0.16),
+          width: 1.0,
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: SproutColors.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: SproutColors.accent, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: SproutTypography.body(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  subtitle,
-                  style: SproutTypography.small(color: SproutColors.secondaryInk),
-                  softWrap: true,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.chevron_right_rounded,
-            color: SproutColors.muted,
-            size: 20,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: items,
+      ),
     );
+  }
 
-    if (onTap != null) {
-      return SproutBouncyTap(
-        onTap: onTap,
-        child: item,
-      );
-    }
+  Widget _buildMockupRowItem({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+    bool showDivider = true,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              onTap();
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 22,
+                    color: SproutColors.primaryInk.withValues(alpha: 0.85),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: subtitle == null
+                        ? Text(
+                            title,
+                            style: SproutTypography.body(fontWeight: FontWeight.w600).copyWith(
+                              fontSize: 16,
+                              color: SproutColors.primaryInk,
+                              letterSpacing: -0.2,
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: SproutTypography.body(fontWeight: FontWeight.w600).copyWith(
+                                  fontSize: 16,
+                                  color: SproutColors.primaryInk,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                subtitle,
+                                style: SproutTypography.small(color: SproutColors.secondaryInk),
+                              ),
+                            ],
+                          ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: SproutColors.secondaryInk.withValues(alpha: 0.55),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (showDivider)
+          Divider(
+            height: 1,
+            thickness: 0.8,
+            indent: 56,
+            endIndent: 20,
+            color: SproutColors.sage.withValues(alpha: 0.14),
+          ),
+      ],
+    );
+  }
 
-    return item;
+  void _showRemindersSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          return SafeArea(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: SproutColors.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: SproutColors.sage.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Reminders 🔔', style: SproutTypography.h3()),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () => Navigator.of(ctx).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Stay consistent with thoughtful culinary notifications.',
+                    style: SproutTypography.caption(color: SproutColors.secondaryInk),
+                  ),
+                  const SizedBox(height: 18),
+                  _buildReminderTile(
+                    title: 'Daily Dinner Inspiration',
+                    time: '6:30 PM everyday',
+                    initialValue: true,
+                    icon: Icons.dinner_dining_rounded,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildReminderTile(
+                    title: 'Weekend Grocery Trip',
+                    time: 'Saturday 10:00 AM',
+                    initialValue: true,
+                    icon: Icons.shopping_bag_outlined,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildReminderTile(
+                    title: 'Cooking Step Timers',
+                    time: 'Alerts & sound chimes',
+                    initialValue: true,
+                    icon: Icons.timer_outlined,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: SproutColors.sproutGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        HapticFeedback.mediumImpact();
+                        Navigator.of(ctx).pop();
+                      },
+                      child: Text(
+                        'Done',
+                        style: SproutTypography.bodyBold(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReminderTile({
+    required String title,
+    required String time,
+    required bool initialValue,
+    required IconData icon,
+  }) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool value = initialValue;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: SproutColors.canvas,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: SproutColors.sage.withValues(alpha: 0.18),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: SproutColors.sproutGreen, size: 22),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: SproutTypography.body(fontWeight: FontWeight.w600)),
+                    Text(time, style: SproutTypography.small(color: SproutColors.secondaryInk)),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: value,
+                activeTrackColor: SproutColors.sproutGreen,
+                activeThumbColor: Colors.white,
+                onChanged: (newVal) {
+                  setState(() => value = newVal);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showNutritionGoalsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: SproutColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: SproutColors.sage.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Nutrition Goals 🎯', style: SproutTypography.h3()),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Personal daily macro targets based on your dietary pattern.',
+                style: SproutTypography.caption(color: SproutColors.secondaryInk),
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMacroGoalCard(
+                      label: 'Calories',
+                      target: '2,000',
+                      unit: 'kcal / day',
+                      color: SproutColors.sproutGreen,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildMacroGoalCard(
+                      label: 'Protein',
+                      target: '65g',
+                      unit: '15% split',
+                      color: SproutColors.butter,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMacroGoalCard(
+                      label: 'Carbohydrates',
+                      target: '225g',
+                      unit: '55% split',
+                      color: SproutColors.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildMacroGoalCard(
+                      label: 'Healthy Fats',
+                      target: '55g',
+                      unit: '30% split',
+                      color: SproutColors.leaf,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.calendar_month_rounded, size: 18),
+                  label: Text(
+                    'Open 7-Day Meal Planner',
+                    style: SproutTypography.bodyBold(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: SproutColors.sproutGreen,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MealPlannerScreen()),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMacroGoalCard({
+    required String label,
+    required String target,
+    required String unit,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: SproutColors.canvas,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(label, style: SproutTypography.smallBold(color: SproutColors.secondaryInk)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(target, style: SproutTypography.h3().copyWith(fontSize: 20)),
+          Text(unit, style: SproutTypography.caption(color: SproutColors.secondaryInk)),
+        ],
+      ),
+    );
+  }
+
+  void _showSettingsSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: SproutColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: SproutColors.sage.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Settings ⚙️', style: SproutTypography.h3()),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildMockupRowItem(
+                icon: Icons.contrast_rounded,
+                title: 'Appearance & Theme',
+                subtitle: _getThemeSubtitle(ref.watch(themeModeProvider)),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showThemeModeSheet(context, ref);
+                },
+              ),
+              _buildMockupRowItem(
+                icon: Icons.restaurant_menu_rounded,
+                title: 'Diet & Cooking Preferences',
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showEditPreferencesSheet(context, ref);
+                },
+              ),
+              _buildMockupRowItem(
+                icon: Icons.info_outline_rounded,
+                title: 'About Sprout',
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showAboutSproutSheet(context);
+                },
+              ),
+              _buildMockupRowItem(
+                icon: Icons.description_outlined,
+                title: 'Terms & Conditions',
+                showDivider: false,
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  _showTermsAndConditionsSheet(context);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showAboutSproutSheet(BuildContext context) {

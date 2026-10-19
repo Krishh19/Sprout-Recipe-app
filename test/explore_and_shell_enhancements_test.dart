@@ -88,7 +88,7 @@ void main() {
       expect(find.byType(BackdropFilter), findsOneWidget);
     });
 
-    testWidgets('SearchScreen renders CustomScrollView with pinned sticky header and 2-column grid', (tester) async {
+    testWidgets('SearchScreen renders CustomScrollView with collapsible header and 2-column grid', (tester) async {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
@@ -100,12 +100,14 @@ void main() {
       // Verify CustomScrollView is used
       expect(find.byType(CustomScrollView), findsOneWidget);
 
-      // Verify SliverAppBar is used with pinned sticky header
+      // Verify SliverAppBar is used with collapsible floating and snapping header
       final sliverAppBarFinder = find.byType(SliverAppBar);
       expect(sliverAppBarFinder, findsOneWidget);
 
       final sliverAppBar = tester.widget<SliverAppBar>(sliverAppBarFinder);
-      expect(sliverAppBar.pinned, isTrue);
+      expect(sliverAppBar.pinned, isFalse);
+      expect(sliverAppBar.floating, isTrue);
+      expect(sliverAppBar.snap, isTrue);
 
       // Verify "Explore recipes" section header and "See all" action
       expect(find.text('Explore recipes'), findsOneWidget);

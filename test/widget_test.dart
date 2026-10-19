@@ -57,10 +57,10 @@ void main() {
     });
 
     test('Sprout color tokens match design system hex values', () {
-      expect(SproutColors.canvas, const Color(0xFFF6F0E3));
-      expect(SproutColors.surface, const Color(0xFFFBF7EE));
+      expect(SproutColors.canvas, const Color(0xFFF0F6FA));
+      expect(SproutColors.surface, const Color(0xFFFFFFFF));
       expect(SproutColors.sproutGreen, const Color(0xFF214B38));
-      expect(SproutColors.primaryInk, const Color(0xFF18372B));
+      expect(SproutColors.primaryInk, const Color(0xFF13362B));
     });
 
     testWidgets('HomeScreen renders clean UTF-8 greeting and wave mascot', (tester) async {

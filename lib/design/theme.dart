@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
@@ -6,7 +7,7 @@ import 'colors.dart';
 class SproutTheme {
   SproutTheme._();
 
-  /// Light Mode: Warm artisanal cream canvas, sage accents, forest green brand
+  /// Light Mode: Luminous sky blue canvas, pure white card surfaces, deep forest green brand
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
@@ -25,13 +26,19 @@ class SproutTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+        ),
         iconTheme: IconThemeData(color: SproutColors.lightPrimaryInk),
       ),
-      dividerColor: SproutColors.sage.withValues(alpha: 0.2),
+      dividerColor: SproutColors.sage.withValues(alpha: 0.18),
     );
   }
 
-  /// Dark Mode: Deep kitchen emerald canvas, night forest surface, vibrant mint accent
+  /// Dark Mode: Nocturnal cyan aurora canvas, midnight slate surface, vibrant mint accent
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -50,12 +57,18 @@ class SproutTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+        ),
         iconTheme: IconThemeData(color: SproutColors.nightPrimaryInk),
       ),
       iconTheme: const IconThemeData(
         color: SproutColors.nightPrimaryInk,
       ),
-      dividerColor: const Color(0xFF2C3E33),
+      dividerColor: const Color(0xFF1D2F35),
     );
   }
 }

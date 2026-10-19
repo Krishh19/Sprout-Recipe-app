@@ -57,6 +57,18 @@ void main() {
       SproutColors.setDarkMode(true);
       expect(SproutColors.resolve(lightCol, darkCol), equals(darkCol));
     });
+
+    test('resolves atmospheric sky background gradients based on theme mode', () {
+      SproutColors.setDarkMode(false);
+      expect(SproutColors.backgroundGradient, equals(SproutColors.lightSkyBackgroundGradient));
+      expect(SproutColors.lightSkyBackgroundGradient.colors.first, equals(SproutColors.lightSkyTop));
+      expect(SproutColors.lightSkyBackgroundGradient.colors.last, equals(SproutColors.lightSkyBase));
+
+      SproutColors.setDarkMode(true);
+      expect(SproutColors.backgroundGradient, equals(SproutColors.nightSkyBackgroundGradient));
+      expect(SproutColors.nightSkyBackgroundGradient.colors.first, equals(SproutColors.nightSkyTop));
+      expect(SproutColors.nightSkyBackgroundGradient.colors.last, equals(SproutColors.nightSkyBase));
+    });
   });
 
   group('SproutTheme Material 3 Configurations', () {

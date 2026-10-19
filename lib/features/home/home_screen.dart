@@ -171,12 +171,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: SproutColors.sproutGreen.withValues(alpha: 0.08),
+                        color: SproutColors.surface,
                         borderRadius: SproutRadii.card,
                         border: Border.all(
-                          color: SproutColors.sproutGreen.withValues(alpha: 0.22),
-                          width: 1.1,
+                          color: SproutColors.sage.withValues(alpha: 0.20),
+                          width: 1.0,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: SproutColors.primaryInk.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -185,7 +192,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             height: 44,
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: SproutColors.sproutGreen.withValues(alpha: 0.12),
+                              color: SproutColors.sproutGreen.withValues(alpha: 0.10),
                               shape: BoxShape.circle,
                             ),
                             child: Image.asset(
@@ -213,7 +220,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           Icon(
                             Icons.arrow_forward_ios_rounded,
                             size: 13,
-                            color: SproutColors.accent,
+                            color: SproutColors.secondaryInk.withValues(alpha: 0.7),
                           ),
                         ],
                       ),
@@ -247,20 +254,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           vertical: 12,
                         ),
                         decoration: BoxDecoration(
-                          color: todayMeals.isNotEmpty
-                              ? SproutColors.sproutGreen.withValues(alpha: 0.08)
-                              : SproutColors.surface,
+                          color: SproutColors.surface,
                           borderRadius: SproutRadii.card,
                           border: Border.all(
-                            color: todayMeals.isNotEmpty
-                                ? SproutColors.sproutGreen.withValues(alpha: 0.25)
-                                : SproutColors.sage.withValues(alpha: 0.25),
+                            color: SproutColors.sage.withValues(alpha: 0.20),
+                            width: 1.0,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: SproutColors.primaryInk.withValues(alpha: 0.02),
+                              color: SproutColors.primaryInk.withValues(alpha: 0.03),
                               blurRadius: 10,
-                              offset: const Offset(0, 2),
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),

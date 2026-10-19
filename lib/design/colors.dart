@@ -11,13 +11,31 @@ class SproutColors {
   /// Utility to resolve color depending on active theme mode
   static Color resolve(Color light, Color dark) => isDarkMode ? dark : light;
 
-  // Base neutrals (light)
-  static const Color lightCanvas = Color(0xFFF6F0E3);
-  static const Color lightSurface = Color(0xFFFBF7EE);
-  static const Color lightElevatedSurface = Color(0xFFFFFDF7);
-  static const Color lightPrimaryInk = Color(0xFF18372B);
-  static const Color lightSecondaryInk = Color(0xFF637067);
-  static const Color lightMuted = Color(0xFFA4A69B);
+  // Base neutrals (light) - Fresh Sky Canvas & Pure White Surfaces
+  static const Color lightCanvas = Color(0xFFF0F6FA);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightElevatedSurface = Color(0xFFFFFFFF);
+  static const Color lightPrimaryInk = Color(0xFF13362B);
+  static const Color lightSecondaryInk = Color(0xFF5E7166);
+  static const Color lightMuted = Color(0xFF96A79D);
+
+  // Atmospheric Sky Background Gradient tokens (Light Mode)
+  static const Color lightSkyTop = Color(0xFFBCE3F7); // Soft luminous sky blue / pastel cyan
+  static const Color lightSkyMid = Color(0xFFD6EDF9); // Gentle transition sky tint
+  static const Color lightSkySoft = Color(0xFFEDF5FA); // Airy ice blue tint
+  static const Color lightSkyBase = Color(0xFFF7FAFD); // Clean luminous white-ice base
+
+  static const LinearGradient lightSkyBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: [0.0, 0.22, 0.55, 1.0],
+    colors: [
+      lightSkyTop,
+      lightSkyMid,
+      lightSkySoft,
+      lightSkyBase,
+    ],
+  );
 
   // Brand greens
   static const Color sproutGreen = Color(0xFF214B38);
@@ -59,20 +77,38 @@ class SproutColors {
   static const Color warning = Color(0xFFD79A42);
   static const Color error = Color(0xFFC95B4B);
 
-  // Glass tokens (light mode: white @ 65% / 55% alpha)
-  static const Color lightGlassBackground = Color(0xA6FFFFFF);
+  // Glass tokens (light mode: frosted white glass)
+  static const Color lightGlassBackground = Color(0xD9FFFFFF);
   static const Color lightGlassBorder = Color(0x8CFFFFFF);
 
-  // Night & Low-Light Kitchen tokens
-  static const Color nightCanvas = Color(0xFF111814);
-  static const Color nightSurface = Color(0xFF1A241F);
-  static const Color nightElevatedSurface = Color(0xFF223029);
-  static const Color nightPrimaryInk = Color(0xFFF0FDF4);
-  static const Color nightSecondaryInk = Color(0xFFA7B3A9);
-  static const Color nightMuted = Color(0xFF5F6E64);
+  // Night & Nocturnal Aurora tokens (Dark Mode counterpart)
+  static const Color nightCanvas = Color(0xFF080E12);
+  static const Color nightSurface = Color(0xFF121E23);
+  static const Color nightElevatedSurface = Color(0xFF1A2B32);
+  static const Color nightPrimaryInk = Color(0xFFF0FDF8);
+  static const Color nightSecondaryInk = Color(0xFF90A8A4);
+  static const Color nightMuted = Color(0xFF556D69);
   static const Color nightAccent = Color(0xFF4ADE80);
-  static const Color nightGlassBackground = Color(0xCC1A241F);
+  static const Color nightGlassBackground = Color(0xCC121E23);
   static const Color nightGlassBorder = Color(0x334ADE80);
+
+  // Atmospheric Nocturnal Aurora Background Gradient tokens (Dark Mode)
+  static const Color nightSkyTop = Color(0xFF133640); // Deep nocturnal aurora cyan
+  static const Color nightSkyMid = Color(0xFF0E252D); // Oceanic slate glow
+  static const Color nightSkySoft = Color(0xFF0B1B20); // Ambient nocturnal shadow
+  static const Color nightSkyBase = Color(0xFF080E12); // Deep obsidian canvas
+
+  static const LinearGradient nightSkyBackgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: [0.0, 0.25, 0.65, 1.0],
+    colors: [
+      nightSkyTop,
+      nightSkyMid,
+      nightSkySoft,
+      nightSkyBase,
+    ],
+  );
 
   // Dynamic tokens matching active theme
   static Color get canvas => isDarkMode ? nightCanvas : lightCanvas;
@@ -84,4 +120,8 @@ class SproutColors {
   static Color get glassBackground => isDarkMode ? nightGlassBackground : lightGlassBackground;
   static Color get glassBorder => isDarkMode ? nightGlassBorder : lightGlassBorder;
   static Color get accent => isDarkMode ? nightAccent : sproutGreen;
+
+  // Active theme background gradient
+  static LinearGradient get backgroundGradient =>
+      isDarkMode ? nightSkyBackgroundGradient : lightSkyBackgroundGradient;
 }

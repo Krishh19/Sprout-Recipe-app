@@ -86,57 +86,64 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
         (themeMode == ThemeMode.system && platformDark);
     SproutColors.setDarkMode(isDark);
 
-    return Scaffold(
-      backgroundColor: isDark ? SproutColors.nightCanvas : SproutColors.lightCanvas,
-      // Let content scroll beneath the translucent glass nav bar
-      extendBody: true,
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: (notification) {
-          if (notification.metrics.axis != Axis.vertical) return false;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: isDark
+            ? SproutColors.nightSkyBackgroundGradient
+            : SproutColors.lightSkyBackgroundGradient,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        // Let content scroll beneath the translucent glass nav bar
+        extendBody: true,
+        body: NotificationListener<UserScrollNotification>(
+          onNotification: (notification) {
+            if (notification.metrics.axis != Axis.vertical) return false;
 
-          // Always ensure nav bar is visible when near the very top of content
-          if (notification.metrics.pixels <= 24) {
-            if (!_isNavVisible) {
+            // Always ensure nav bar is visible when near the very top of content
+            if (notification.metrics.pixels <= 24) {
+              if (!_isNavVisible) {
+                setState(() => _isNavVisible = true);
+              }
+              return false;
+            }
+
+            if (notification.direction == ScrollDirection.reverse && _isNavVisible) {
+              // Scrolling down into content -> hide bottom nav
+              setState(() => _isNavVisible = false);
+            } else if (notification.direction == ScrollDirection.forward && !_isNavVisible) {
+              // Scrolling up towards top -> reveal bottom nav
               setState(() => _isNavVisible = true);
             }
             return false;
-          }
-
-          if (notification.direction == ScrollDirection.reverse && _isNavVisible) {
-            // Scrolling down into content -> hide bottom nav
-            setState(() => _isNavVisible = false);
-          } else if (notification.direction == ScrollDirection.forward && !_isNavVisible) {
-            // Scrolling up towards top -> reveal bottom nav
-            setState(() => _isNavVisible = true);
-          }
-          return false;
-        },
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: IndexedStack(
-            index: _currentIndex,
-            children: [
-              HomeScreen(
-                onSearchTriggered: _handleSearchTrigger,
-                onExploreTriggered: () => _onIndexChanged(1),
-                onScanTriggered: () => _onIndexChanged(2),
-              ),
-              SearchScreen(initialQuery: _pendingSearchQuery),
-              const ScannerScreen(),
-              SavedScreen(onExploreTap: () => _onIndexChanged(1)),
-              ProfileScreen(onTabSwitch: _onIndexChanged),
-            ],
+          },
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: IndexedStack(
+              index: _currentIndex,
+              children: [
+                HomeScreen(
+                  onSearchTriggered: _handleSearchTrigger,
+                  onExploreTriggered: () => _onIndexChanged(1),
+                  onScanTriggered: () => _onIndexChanged(2),
+                ),
+                SearchScreen(initialQuery: _pendingSearchQuery),
+                const ScannerScreen(),
+                SavedScreen(onExploreTap: () => _onIndexChanged(1)),
+                ProfileScreen(onTabSwitch: _onIndexChanged),
+              ],
+            ),
           ),
         ),
-      ),
-      bottomNavigationBar: AnimatedSlide(
-        offset: _isNavVisible ? Offset.zero : const Offset(0, 1.4),
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeInOutCubic,
-        child: SproutGlassNav(
-          currentIndex: _currentIndex,
-          onIndexChanged: _onIndexChanged,
-          onScanTap: () => _onIndexChanged(2),
+        bottomNavigationBar: AnimatedSlide(
+          offset: _isNavVisible ? Offset.zero : const Offset(0, 1.4),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeInOutCubic,
+          child: SproutGlassNav(
+            currentIndex: _currentIndex,
+            onIndexChanged: _onIndexChanged,
+            onScanTap: () => _onIndexChanged(2),
+          ),
         ),
       ),
     );

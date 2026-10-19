@@ -6,9 +6,9 @@ import 'package:sprout/design/components/sprout_shimmer.dart';
 void main() {
   group('UI Enhancement Tests', () {
     test('SproutColors night kitchen tokens are defined with high contrast', () {
-      expect(SproutColors.nightCanvas, const Color(0xFF111814));
-      expect(SproutColors.nightSurface, const Color(0xFF1A241F));
-      expect(SproutColors.nightPrimaryInk, const Color(0xFFF0FDF4));
+      expect(SproutColors.nightCanvas, const Color(0xFF080E12));
+      expect(SproutColors.nightSurface, const Color(0xFF121E23));
+      expect(SproutColors.nightPrimaryInk, const Color(0xFFF0FDF8));
       expect(SproutColors.nightAccent, const Color(0xFF4ADE80));
     });
 

@@ -353,6 +353,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     final hasActiveFilters = _selectedMaxTime != null || _selectedCuisine != null;
     final headerHeight = hasActiveFilters ? 162.0 : 120.0;
 
@@ -369,16 +370,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               parent: BouncingScrollPhysics(),
             ),
             slivers: [
-              // Pinned Sticky Header: Search bar + quick category filter pills
+              // Collapsible Floating Header: Search bar + quick category filter pills
               SliverAppBar(
-                floating: false,
-                snap: false,
-                pinned: true,
+                floating: true,
+                snap: true,
+                pinned: false,
                 primary: false,
                 automaticallyImplyLeading: false,
                 elevation: 0,
-                scrolledUnderElevation: 0,
-                backgroundColor: SproutColors.canvas,
+                backgroundColor: (isDark ? SproutColors.nightSkyTop : SproutColors.lightSkyTop)
+                    .withValues(alpha: 0.96),
+                surfaceTintColor: Colors.transparent,
                 toolbarHeight: headerHeight,
                 titleSpacing: 0,
                 title: SizedBox(

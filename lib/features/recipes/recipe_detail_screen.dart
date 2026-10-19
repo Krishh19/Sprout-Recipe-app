@@ -319,9 +319,18 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
         : SproutColors.lightPrimaryInk;
 
     return Scaffold(
-      backgroundColor: SproutColors.canvas,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: isDark
+                    ? SproutColors.nightSkyBackgroundGradient
+                    : SproutColors.lightSkyBackgroundGradient,
+              ),
+            ),
+          ),
           CustomScrollView(
             slivers: [
               // Hero Image & Overlay AppBar

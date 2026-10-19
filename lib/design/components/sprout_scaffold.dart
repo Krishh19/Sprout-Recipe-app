@@ -10,6 +10,8 @@ class SproutScaffold extends StatelessWidget {
   final bool resizeToAvoidBottomInset;
   final Color? backgroundColor;
   final bool showStatusBarScrim;
+  final Gradient? backgroundGradient;
+  final bool extendBody;
 
   const SproutScaffold({
     super.key,
@@ -19,13 +21,18 @@ class SproutScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.resizeToAvoidBottomInset = true,
     this.backgroundColor,
-    this.showStatusBarScrim = true,
+    this.showStatusBarScrim = false,
+    this.backgroundGradient,
+    this.extendBody = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     final topPadding = MediaQuery.paddingOf(context).top;
     final bg = backgroundColor ?? SproutColors.canvas;
+    final effectiveGradient = backgroundGradient ??
+        (backgroundColor == null ? SproutColors.backgroundGradient : null);
 
     Widget effectiveBody = body;
     if (showStatusBarScrim && topPadding > 0 && appBar == null) {
@@ -43,7 +50,8 @@ class SproutScaffold extends StatelessWidget {
                   filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: bg.withValues(alpha: 0.88),
+                      color: (isDark ? SproutColors.nightSkyTop : SproutColors.lightSkyTop)
+                          .withValues(alpha: 0.70),
                       border: Border(
                         bottom: BorderSide(
                           color: SproutColors.sage.withValues(alpha: 0.12),
@@ -61,10 +69,22 @@ class SproutScaffold extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: effectiveGradient != null ? Colors.transparent : bg,
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      extendBody: extendBody,
       appBar: appBar,
-      body: effectiveBody,
+      body: effectiveGradient != null
+          ? Stack(
+              children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(gradient: effectiveGradient),
+                  ),
+                ),
+                effectiveBody,
+              ],
+            )
+          : effectiveBody,
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,
     );
