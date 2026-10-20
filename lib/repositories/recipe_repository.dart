@@ -312,6 +312,7 @@ class RecipeRepository {
     required String query,
     int? maxTime,
     String? cuisine,
+    List<String>? cuisines,
     List<String>? diets,
     int page = 0,
     int pageSize = 20,
@@ -324,6 +325,13 @@ class RecipeRepository {
         ? diets
         : (intentDiets != null && intentDiets.isNotEmpty ? intentDiets : null);
 
+    final effectiveCuisines = <String>[];
+    if (cuisines != null && cuisines.isNotEmpty) {
+      effectiveCuisines.addAll(cuisines.map((c) => c.trim()).where((c) => c.isNotEmpty));
+    } else if (cuisine != null && cuisine.trim().isNotEmpty) {
+      effectiveCuisines.add(cuisine.trim());
+    }
+
     try {
       var queryBuilder = SupabaseService.client.from('recipes').select(_listColumns);
 
@@ -335,8 +343,13 @@ class RecipeRepository {
         queryBuilder = queryBuilder.lte('total_time_mins', effectiveMaxTime);
       }
 
-      if (cuisine != null && cuisine.isNotEmpty) {
-        queryBuilder = queryBuilder.ilike('cuisine', '%$cuisine%');
+      if (effectiveCuisines.isNotEmpty) {
+        if (effectiveCuisines.length == 1) {
+          queryBuilder = queryBuilder.ilike('cuisine', '%${effectiveCuisines.first}%');
+        } else {
+          final orFilter = effectiveCuisines.map((c) => 'cuisine.ilike.%$c%').join(',');
+          queryBuilder = queryBuilder.or(orFilter);
+        }
       }
 
       if (effectiveDiets != null && effectiveDiets.isNotEmpty) {
@@ -362,7 +375,8 @@ class RecipeRepository {
           r.cuisine.toLowerCase().contains(lowerQuery) ||
           r.cleanedIngredients.any((i) => i.toLowerCase().contains(lowerQuery));
       final matchesTime = effectiveMaxTime == null || r.totalTimeMins <= effectiveMaxTime;
-      final matchesCuisine = cuisine == null || r.cuisine.toLowerCase().contains(cuisine.toLowerCase());
+      final matchesCuisine = effectiveCuisines.isEmpty ||
+          effectiveCuisines.any((c) => r.cuisine.toLowerCase().contains(c.toLowerCase()));
       final matchesDiet = effectiveDiets == null || effectiveDiets.isEmpty || effectiveDiets.contains(r.diet);
       return matchesQuery && matchesTime && matchesCuisine && matchesDiet;
     }).toList();

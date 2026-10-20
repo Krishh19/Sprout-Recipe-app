@@ -26,6 +26,7 @@ class _MockAlphabeticalRecipeRepository extends RecipeRepository {
     required String query,
     int? maxTime,
     String? cuisine,
+    List<String>? cuisines,
     List<String>? diets,
     int page = 0,
     int pageSize = 20,

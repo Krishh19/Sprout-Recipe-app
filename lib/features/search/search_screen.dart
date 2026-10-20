@@ -55,7 +55,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   // Active Filters
   int? _selectedMaxTime;
-  String? _selectedCuisine;
+  Set<String> _selectedCuisines = <String>{};
 
   final List<int> _timeOptions = [15, 30, 45, 60];
   final List<String> _cuisineOptions = const [
@@ -165,7 +165,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final list = await repo.searchRecipes(
       query: _searchController.text,
       maxTime: _selectedMaxTime,
-      cuisine: _selectedCuisine,
+      cuisine: _selectedCuisines.length == 1 ? _selectedCuisines.first : null,
+      cuisines: _selectedCuisines.toList(),
       diets: _getActiveDiets(),
       page: 0,
       pageSize: _pageSize,
@@ -189,7 +190,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final list = await repo.searchRecipes(
       query: _searchController.text,
       maxTime: _selectedMaxTime,
-      cuisine: _selectedCuisine,
+      cuisine: _selectedCuisines.length == 1 ? _selectedCuisines.first : null,
+      cuisines: _selectedCuisines.toList(),
       diets: _getActiveDiets(),
       page: nextPage,
       pageSize: _pageSize,
@@ -206,31 +208,37 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _showFilterSheet() {
+    int? tempMaxTime = _selectedMaxTime;
+    final Set<String> tempCuisines = Set<String>.from(_selectedCuisines);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.82,
-            ),
-            padding: EdgeInsets.fromLTRB(
-              24,
-              20,
-              24,
-              MediaQuery.of(context).viewInsets.bottom + 20,
-            ),
-            decoration: BoxDecoration(
-              color: SproutColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            child: SingleChildScrollView(
+        builder: (context, setSheetState) {
+          final totalCount = (tempMaxTime != null ? 1 : 0) + tempCuisines.length;
+
+          return SafeArea(
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.82,
+              ),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                16,
+                24,
+                MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              decoration: BoxDecoration(
+                color: SproutColors.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Pinned Drag Handle
                   Center(
                     child: Container(
                       width: 40,
@@ -242,19 +250,39 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ),
                     ),
                   ),
+
+                  // Pinned Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Filters', style: SproutTypography.h3()),
+                      Row(
+                        children: [
+                          Text('Filters', style: SproutTypography.h3()),
+                          if (totalCount > 0) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: SproutColors.sproutGreen.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '$totalCount',
+                                style: SproutTypography.smallBold(color: SproutColors.sproutGreen),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                       TextButton(
                         onPressed: () {
                           setSheetState(() {
-                            _selectedMaxTime = null;
-                            _selectedCuisine = null;
+                            tempMaxTime = null;
+                            tempCuisines.clear();
                           });
                           setState(() {
                             _selectedMaxTime = null;
-                            _selectedCuisine = null;
+                            _selectedCuisines.clear();
                             _selectedQuickFilter = null;
                           });
                           _performSearch();
@@ -264,65 +292,104 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text('Cooking Time (Max)', style: SproutTypography.bodyBold()),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _timeOptions.map((time) {
-                      final isSel = _selectedMaxTime == time;
-                      return ChoiceChip(
-                        label: Text('≤ $time min'),
-                        selected: isSel,
-                        selectedColor: SproutColors.sproutGreen,
-                        labelStyle: TextStyle(
-                          color: isSel ? Colors.white : SproutColors.primaryInk,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        backgroundColor: SproutColors.canvas,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: SproutRadii.borderPill,
-                        ),
-                        onSelected: (selected) {
-                          setSheetState(() {
-                            _selectedMaxTime = selected ? time : null;
-                          });
-                        },
-                      );
-                    }).toList(),
+                  const SizedBox(height: 12),
+
+                  // Scrollable Body (Cooking time + Multi-select cuisines)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Cooking Time (Max)', style: SproutTypography.bodyBold()),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _timeOptions.map((time) {
+                              final isSel = tempMaxTime == time;
+                              return ChoiceChip(
+                                label: Text('≤ $time min'),
+                                selected: isSel,
+                                selectedColor: SproutColors.sproutGreen,
+                                labelStyle: TextStyle(
+                                  color: isSel ? Colors.white : SproutColors.primaryInk,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                backgroundColor: SproutColors.canvas,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: SproutRadii.borderPill,
+                                ),
+                                onSelected: (selected) {
+                                  setSheetState(() {
+                                    tempMaxTime = selected ? time : null;
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Cuisines', style: SproutTypography.bodyBold()),
+                              if (tempCuisines.isNotEmpty)
+                                Text(
+                                  '${tempCuisines.length} selected',
+                                  style: SproutTypography.small(color: SproutColors.sproutGreen),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _cuisineOptions.map((c) {
+                              final isSel = tempCuisines.contains(c);
+                              return FilterChip(
+                                label: Text(c),
+                                selected: isSel,
+                                selectedColor: SproutColors.sproutGreen,
+                                checkmarkColor: Colors.white,
+                                showCheckmark: true,
+                                labelStyle: TextStyle(
+                                  color: isSel ? Colors.white : SproutColors.primaryInk,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                backgroundColor: SproutColors.canvas,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: SproutRadii.borderPill,
+                                ),
+                                onSelected: (selected) {
+                                  setSheetState(() {
+                                    if (selected) {
+                                      tempCuisines.add(c);
+                                    } else {
+                                      tempCuisines.remove(c);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  Text('Cuisine', style: SproutTypography.bodyBold()),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _cuisineOptions.map((c) {
-                      final isSel = _selectedCuisine == c;
-                      return ChoiceChip(
-                        label: Text(c),
-                        selected: isSel,
-                        selectedColor: SproutColors.sproutGreen,
-                        labelStyle: TextStyle(
-                          color: isSel ? Colors.white : SproutColors.primaryInk,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        backgroundColor: SproutColors.canvas,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: SproutRadii.borderPill,
-                        ),
-                        onSelected: (selected) {
-                          setSheetState(() {
-                            _selectedCuisine = selected ? c : null;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
+
+                  // Pinned Footer: Directly accessible without scrolling!
+                  Container(
                     width: double.infinity,
+                    padding: const EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: SproutColors.sage.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                    ),
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: SproutColors.sproutGreen,
@@ -332,12 +399,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                       ),
                       onPressed: () {
-                        setState(() {});
+                        setState(() {
+                          _selectedMaxTime = tempMaxTime;
+                          _selectedCuisines = Set<String>.from(tempCuisines);
+                          if (_selectedCuisines.isEmpty && _selectedQuickFilter == 'Indian') {
+                            _selectedQuickFilter = null;
+                          }
+                        });
                         _performSearch();
                         Navigator.of(ctx).pop();
                       },
                       child: Text(
-                        'Apply Filters',
+                        totalCount > 0 ? 'Apply Filters ($totalCount)' : 'Apply Filters',
                         style: SproutTypography.bodyBold(color: Colors.white),
                       ),
                     ),
@@ -345,8 +418,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -354,8 +427,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
-    final hasActiveFilters = _selectedMaxTime != null || _selectedCuisine != null;
-    final headerHeight = hasActiveFilters ? 162.0 : 120.0;
+    final hasActiveFilters = _selectedMaxTime != null || _selectedCuisines.isNotEmpty;
+    final headerHeight = hasActiveFilters ? 164.0 : 120.0;
 
     final topPadding = MediaQuery.paddingOf(context).top;
 
@@ -432,14 +505,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                   if (label == 'All') {
                                     _selectedQuickFilter = null;
                                     _selectedMaxTime = null;
-                                    _selectedCuisine = null;
+                                    _selectedCuisines.clear();
                                     _searchController.clear();
                                   } else if (isSel) {
                                     _selectedQuickFilter = null;
                                     if (label == 'Quick') {
                                       _selectedMaxTime = null;
                                     } else if (label == 'Indian') {
-                                      _selectedCuisine = null;
+                                      _selectedCuisines.remove('Indian');
                                     } else if (label == 'Vegetarian') {
                                       // cleared via _selectedQuickFilter
                                     } else {
@@ -450,7 +523,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                     if (label == 'Quick') {
                                       _selectedMaxTime = 30;
                                     } else if (label == 'Indian') {
-                                      _selectedCuisine = 'Indian';
+                                      _selectedCuisines = {'Indian'};
                                     } else if (label == 'Vegetarian') {
                                       // handled automatically by _getActiveDiets()
                                     } else {
@@ -468,14 +541,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       // Active Filters indicator if any
                       if (hasActiveFilters) ...[
                         const SizedBox(height: 6),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Row(
+                        SizedBox(
+                          height: 34,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
                             children: [
                               if (_selectedMaxTime != null)
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8.0),
-                                  child: Chip(
+                                  child: InputChip(
                                     label: Text('≤ $_selectedMaxTime min'),
                                     onDeleted: () {
                                       setState(() => _selectedMaxTime = null);
@@ -483,14 +558,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                     },
                                   ),
                                 ),
-                              if (_selectedCuisine != null)
-                                Chip(
-                                  label: Text(_selectedCuisine!),
+                              ..._selectedCuisines.map((c) => Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: InputChip(
+                                  label: Text(c),
                                   onDeleted: () {
-                                    setState(() => _selectedCuisine = null);
+                                    setState(() {
+                                      _selectedCuisines.remove(c);
+                                      if (_selectedCuisines.isEmpty && _selectedQuickFilter == 'Indian') {
+                                        _selectedQuickFilter = null;
+                                      }
+                                    });
                                     _performSearch();
                                   },
                                 ),
+                              )),
                             ],
                           ),
                         ),
@@ -523,7 +605,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           setState(() {
                             _selectedQuickFilter = null;
                             _selectedMaxTime = null;
-                            _selectedCuisine = null;
+                            _selectedCuisines.clear();
                           });
                           _performSearch();
                         },
@@ -582,7 +664,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       _searchController.clear();
                       setState(() {
                         _selectedMaxTime = null;
-                        _selectedCuisine = null;
+                        _selectedCuisines.clear();
                         _selectedQuickFilter = null;
                       });
                       _performSearch();
