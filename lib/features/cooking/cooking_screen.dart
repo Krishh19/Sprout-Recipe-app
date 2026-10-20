@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../design/colors.dart';
@@ -37,6 +38,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     with WidgetsBindingObserver {
   final PageController _pageController = PageController();
   final GeminiTtsService _geminiTts = GeminiTtsService();
+  final FlutterTts _flutterTts = FlutterTts();
   int _currentStep = 0;
   bool _isSpeaking = false;
   bool _isSynthesizingTts = false;
@@ -78,6 +80,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     final isSourceHindi = RecipeTranslationService.isRecipeHindi(widget.recipe);
     _currentLanguage = isSourceHindi ? 'hi' : 'en';
 
+    _initFlutterTts();
     _initVoiceBargeIn();
     _restoreSession();
     _prefetchTts(0);
@@ -86,10 +89,45 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     SproutNotificationService().initialize();
   }
 
+  void _initFlutterTts() {
+    try {
+      _flutterTts.setCompletionHandler(() async {
+        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+        if (mounted) {
+          setState(() {
+            _isSpeaking = false;
+            _isSynthesizingTts = false;
+          });
+        }
+      });
+      _flutterTts.setErrorHandler((_) async {
+        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+        if (mounted) {
+          setState(() {
+            _isSpeaking = false;
+            _isSynthesizingTts = false;
+          });
+        }
+      });
+      _flutterTts.setCancelHandler(() async {
+        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+        if (mounted) {
+          setState(() {
+            _isSpeaking = false;
+            _isSynthesizingTts = false;
+          });
+        }
+      });
+    } catch (_) {}
+  }
+
   void _initVoiceBargeIn() {
     _voiceCookingService.onBargeIn = () async {
       if (_isSpeaking || _isSynthesizingTts) {
         await _geminiTts.stopAudio();
+        try {
+          await _flutterTts.stop();
+        } catch (_) {}
         if (mounted) {
           setState(() {
             _isSpeaking = false;
@@ -105,6 +143,9 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     _geminiTts.stopAudio();
+    try {
+      _flutterTts.stop();
+    } catch (_) {}
     _voiceCookingService.stopListening();
     _countdownTimer?.cancel();
     _voiceFeedbackTimer?.cancel();
@@ -172,10 +213,35 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
     }
   }
 
+  Future<void> _speakWithDeviceTts(String text, {required bool isHindi}) async {
+    try {
+      if (mounted) setState(() => _isSpeaking = true);
+      if (isHindi) {
+        try {
+          await _flutterTts.setLanguage("hi-IN");
+          await _flutterTts.setSpeechRate(0.48);
+        } catch (_) {}
+      } else {
+        try {
+          await _flutterTts.setLanguage("en-US");
+          await _flutterTts.setSpeechRate(0.5);
+        } catch (_) {}
+      }
+      await _flutterTts.speak(text);
+    } catch (e) {
+      debugPrint('Device TTS speak error: $e');
+      await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
+      if (mounted) setState(() => _isSpeaking = false);
+    }
+  }
+
   void _speakCurrentStep() async {
     // If currently speaking or synthesizing, stop immediately
     if (_isSpeaking || _isSynthesizingTts) {
       await _geminiTts.stopAudio();
+      try {
+        await _flutterTts.stop();
+      } catch (_) {}
       await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
       if (mounted) {
         setState(() {
@@ -219,16 +285,14 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
           },
         );
       } else {
-        _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
-        await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-        if (mounted) setState(() => _isSpeaking = false);
+        // Seamless on-device TTS fallback
+        await _speakWithDeviceTts(stepText, isHindi: isHindi);
       }
     } catch (_) {
       if (!mounted) return;
       setState(() => _isSynthesizingTts = false);
-      _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
-      await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-      if (mounted) setState(() => _isSpeaking = false);
+      // Fallback to on-device TTS on exception
+      await _speakWithDeviceTts(stepText, isHindi: isHindi);
     }
   }
 
@@ -424,10 +488,8 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
               }
             },
           );
-        } else {
-          _showVoiceFeedback('Gemini voice assistant unavailable or rate limit reached');
-          await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-          if (mounted) setState(() => _isSpeaking = false);
+        } else if (mounted) {
+          await _speakWithDeviceTts(answer, isHindi: isHindi || RecipeTranslationService.isHindi(answer));
         }
       } else {
         setState(() {
@@ -1919,7 +1981,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                                     ? "Listening... 🎙️"
                                     : (isSpeaking
                                         ? "Chef Sprout Speaking 🔊"
-                                        : (_voiceFeedbackMessage ?? "Chef Sprout 🧑‍🍳"))),
+                                        : "Chef Sprout 🧑‍🍳")),
                             style: GoogleFonts.inter(
                               color: primaryTextColor,
                               fontWeight: FontWeight.w700,
@@ -1938,6 +2000,9 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                           });
                           if (_isSpeaking) {
                             _geminiTts.stopAudio();
+                            try {
+                              _flutterTts.stop();
+                            } catch (_) {}
                             setState(() => _isSpeaking = false);
                           }
                           if (_isVoiceListening) {
@@ -2066,9 +2131,9 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                                     if (mounted) setState(() => _isSpeaking = false);
                                   },
                                 );
-                              } else {
-                                await _voiceCookingService.onTtsFinished(resumeIfHandsFree: _isVoiceListening);
-                                if (mounted) setState(() => _isSpeaking = false);
+                              } else if (mounted) {
+                                final isHindi = _currentLanguage == 'hi' || RecipeTranslationService.isHindi(_lastSproutAnswer!);
+                                await _speakWithDeviceTts(_lastSproutAnswer!, isHindi: isHindi);
                               }
                             }
                           },

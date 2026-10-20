@@ -243,8 +243,6 @@ class GeminiTtsService {
       final primaryModels = [
         'gemini-3.8-flash-lite-tts',
         'gemini-3.8-flash-tts',
-        'gemini-2.5-flash-preview-tts',
-        'gemini-3.1-flash-tts-preview',
       ];
 
       for (final model in primaryModels) {
@@ -255,32 +253,31 @@ class GeminiTtsService {
         final requestPayload = {
           'contents': [
             {
+              'role': 'user',
               'parts': [
-                {'text': spokenText}
-              ]
+                {
+                  'text': spokenText,
+                  'speech_metadata': {
+                    'style': isHindi ? hindiVoiceDirection : voiceDirection,
+                  },
+                }
+              ],
             }
           ],
-          'system_instruction': {
-            'parts': [
-              {'text': isHindi ? hindiVoiceDirection : voiceDirection}
-            ]
-          },
           'generationConfig': {
             'responseModalities': ['AUDIO'],
             'speechConfig': {
               'voiceConfig': {
-                'prebuiltVoiceConfig': {
-                  'voiceName': selectedVoice,
-                }
-              }
-            }
-          }
+                'voice': selectedVoice,
+              },
+            },
+          },
         };
 
         try {
           final response = await http.post(
             url,
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
             body: jsonEncode(requestPayload),
           ).timeout(const Duration(seconds: 15));
 

@@ -1292,9 +1292,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    GroqService().isAvailable
-                        ? 'Calculating nutrition with Qwen 3.8...'
-                        : 'Calculating nutrition with Gemini...',
+                    'Calculating nutrition with Chef Sprout...',
+
+
                     style: SproutTypography.caption(color: SproutColors.secondaryInk),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
