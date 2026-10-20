@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../core/tutorial/tutorial_manager.dart';
 import '../design/colors.dart';
 import '../design/components/sprout_glass_nav.dart';
 import '../design/motion.dart';
+import '../design/radii.dart';
+import '../design/sprout_haptics.dart';
 import '../providers/theme_provider.dart';
 import 'home/home_screen.dart';
 import 'profile/profile_screen.dart';
@@ -29,6 +34,94 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
   late final AnimationController _fadeController;
   late final Animation<double> _fadeAnimation;
   bool _isNavVisible = true;
+
+  DateTime? _lastBackPressTime;
+  bool _canPop = false;
+  Timer? _exitTimer;
+
+  void _resetExitState() {
+    _exitTimer?.cancel();
+    _exitTimer = null;
+    _lastBackPressTime = null;
+    if (mounted && _canPop) {
+      setState(() {
+        _canPop = false;
+      });
+    }
+  }
+
+  void _showExitToast() {
+    SproutHaptics.light();
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
+    final textScaler = MediaQuery.textScalerOf(context);
+    final toastWidth = (200.0 * textScaler.scale(1.0)).clamp(190.0, 320.0);
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'Tap again to exit',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.karla(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 0.1,
+          ),
+        ),
+        behavior: SnackBarBehavior.floating,
+        width: toastWidth,
+        backgroundColor: const Color(0xEB262626),
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: const RoundedRectangleBorder(
+          borderRadius: SproutRadii.card,
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handlePopInvoked(bool didPop) {
+    if (didPop) {
+      _resetExitState();
+      return;
+    }
+
+    // 1. If there is an active modal route (dialog, bottom sheet, or pushed route)
+    // that can be popped, let Navigator pop it normally.
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+
+    // 2. If user is on a non-home tab, navigate back to home tab (tab 0).
+    if (_currentIndex != 0) {
+      _onIndexChanged(0);
+      _resetExitState();
+      return;
+    }
+
+    // 3. User is on root/home screen. Handle double-back-to-exit.
+    final now = DateTime.now();
+    final isSecondPress = _lastBackPressTime != null &&
+        now.difference(_lastBackPressTime!) <= const Duration(seconds: 2);
+
+    if (isSecondPress) {
+      _resetExitState();
+      ScaffoldMessenger.of(context).clearSnackBars();
+      SystemNavigator.pop();
+    } else {
+      _lastBackPressTime = now;
+      _showExitToast();
+      setState(() {
+        _canPop = true;
+      });
+      _exitTimer?.cancel();
+      _exitTimer = Timer(const Duration(seconds: 2), _resetExitState);
+    }
+  }
 
   @override
   void initState() {
@@ -55,12 +148,14 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
 
   @override
   void dispose() {
+    _exitTimer?.cancel();
     _fadeController.dispose();
     super.dispose();
   }
 
   void _onIndexChanged(int index) {
     if (index == _currentIndex) return;
+    _resetExitState();
     setState(() {
       _currentIndex = index;
       _isNavVisible = true;
@@ -69,6 +164,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
   }
 
   void _handleSearchTrigger(String query) {
+    _resetExitState();
     setState(() {
       _pendingSearchQuery = query;
       _currentIndex = 1; // Explore / Search tab
@@ -86,64 +182,74 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen>
         (themeMode == ThemeMode.system && platformDark);
     SproutColors.setDarkMode(isDark);
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: isDark
-            ? SproutColors.nightSkyBackgroundGradient
-            : SproutColors.lightSkyBackgroundGradient,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        // Let content scroll beneath the translucent glass nav bar and behind status bar
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        body: NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            if (notification.metrics.axis != Axis.vertical) return false;
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
 
-            // Always ensure nav bar is visible when near the very top of content
-            if (notification.metrics.pixels <= 24) {
-              if (!_isNavVisible) {
+    return PopScope(
+      canPop: !isAndroid || _canPop,
+      onPopInvokedWithResult: (didPop, result) {
+        if (isAndroid) {
+          _handlePopInvoked(didPop);
+        }
+      },
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? SproutColors.nightSkyBackgroundGradient
+              : SproutColors.lightSkyBackgroundGradient,
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          // Let content scroll beneath the translucent glass nav bar and behind status bar
+          extendBody: true,
+          extendBodyBehindAppBar: true,
+          body: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.metrics.axis != Axis.vertical) return false;
+
+              // Always ensure nav bar is visible when near the very top of content
+              if (notification.metrics.pixels <= 24) {
+                if (!_isNavVisible) {
+                  setState(() => _isNavVisible = true);
+                }
+                return false;
+              }
+
+              if (notification.direction == ScrollDirection.reverse && _isNavVisible) {
+                // Scrolling down into content -> hide bottom nav
+                setState(() => _isNavVisible = false);
+              } else if (notification.direction == ScrollDirection.forward && !_isNavVisible) {
+                // Scrolling up towards top -> reveal bottom nav
                 setState(() => _isNavVisible = true);
               }
               return false;
-            }
-
-            if (notification.direction == ScrollDirection.reverse && _isNavVisible) {
-              // Scrolling down into content -> hide bottom nav
-              setState(() => _isNavVisible = false);
-            } else if (notification.direction == ScrollDirection.forward && !_isNavVisible) {
-              // Scrolling up towards top -> reveal bottom nav
-              setState(() => _isNavVisible = true);
-            }
-            return false;
-          },
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: IndexedStack(
-              index: _currentIndex,
-              children: [
-                HomeScreen(
-                  onSearchTriggered: _handleSearchTrigger,
-                  onExploreTriggered: () => _onIndexChanged(1),
-                  onScanTriggered: () => _onIndexChanged(2),
-                ),
-                SearchScreen(initialQuery: _pendingSearchQuery),
-                const ScannerScreen(),
-                SavedScreen(onExploreTap: () => _onIndexChanged(1)),
-                ProfileScreen(onTabSwitch: _onIndexChanged),
-              ],
+            },
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  HomeScreen(
+                    onSearchTriggered: _handleSearchTrigger,
+                    onExploreTriggered: () => _onIndexChanged(1),
+                    onScanTriggered: () => _onIndexChanged(2),
+                  ),
+                  SearchScreen(initialQuery: _pendingSearchQuery),
+                  const ScannerScreen(),
+                  SavedScreen(onExploreTap: () => _onIndexChanged(1)),
+                  ProfileScreen(onTabSwitch: _onIndexChanged),
+                ],
+              ),
             ),
           ),
-        ),
-        bottomNavigationBar: AnimatedSlide(
-          offset: _isNavVisible ? Offset.zero : const Offset(0, 1.4),
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeInOutCubic,
-          child: SproutGlassNav(
-            currentIndex: _currentIndex,
-            onIndexChanged: _onIndexChanged,
-            onScanTap: () => _onIndexChanged(2),
+          bottomNavigationBar: AnimatedSlide(
+            offset: _isNavVisible ? Offset.zero : const Offset(0, 1.4),
+            duration: const Duration(milliseconds: 260),
+            curve: Curves.easeInOutCubic,
+            child: SproutGlassNav(
+              currentIndex: _currentIndex,
+              onIndexChanged: _onIndexChanged,
+              onScanTap: () => _onIndexChanged(2),
+            ),
           ),
         ),
       ),

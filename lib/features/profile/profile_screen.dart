@@ -599,7 +599,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 18),
 
-              // Mockup Card 2: Kitchen & Legal Information
+              // Mockup Card 2: Kitchen Management
               _buildGroupedCard(
                 isDark: isDark,
                 items: [
@@ -611,18 +611,8 @@ class ProfileScreen extends ConsumerWidget {
                   _buildMockupRowItem(
                     icon: Icons.history_rounded,
                     title: 'Cook History',
-                    onTap: () => _showCookHistorySheet(context, cookHistory),
-                  ),
-                  _buildMockupRowItem(
-                    icon: Icons.info_outline_rounded,
-                    title: 'About Sprout',
-                    onTap: () => _showAboutSproutSheet(context),
-                  ),
-                  _buildMockupRowItem(
-                    icon: Icons.description_outlined,
-                    title: 'Terms & Conditions',
                     showDivider: false,
-                    onTap: () => _showTermsAndConditionsSheet(context),
+                    onTap: () => _showCookHistorySheet(context, cookHistory),
                   ),
                 ],
               ),
@@ -1268,14 +1258,6 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _showThemeModeSheet(context, ref);
-                },
-              ),
-              _buildMockupRowItem(
-                icon: Icons.restaurant_menu_rounded,
-                title: 'Diet & Cooking Preferences',
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  _showEditPreferencesSheet(context, ref);
                 },
               ),
               _buildMockupRowItem(

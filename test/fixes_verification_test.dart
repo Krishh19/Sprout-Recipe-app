@@ -184,7 +184,13 @@ void main() {
 
       // Verify Diet & Cooking Preferences header exists
       expect(find.text('Diet & Cooking Preferences'), findsOneWidget);
-      // Verify Terms & Conditions menu item is present
+      // Verify Settings is accessible and can open Terms & Conditions
+      final settingsFinder = find.text('Settings');
+      expect(settingsFinder, findsOneWidget);
+      await tester.ensureVisible(settingsFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(settingsFinder);
+      await tester.pumpAndSettle();
       expect(find.text('Terms & Conditions'), findsOneWidget);
     });
 
