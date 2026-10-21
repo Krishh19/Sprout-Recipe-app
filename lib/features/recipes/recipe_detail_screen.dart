@@ -7,7 +7,6 @@ import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_button.dart';
 import '../../design/components/sprout_diet_badge.dart';
-import '../../design/components/sprout_metallic_text.dart';
 import '../../design/components/sprout_recipe_image.dart';
 import '../../design/components/sprout_substitution_card.dart';
 import '../../design/radii.dart';
@@ -583,10 +582,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
                         const SizedBox(height: 12),
                       ],
 
-                      // Title (Section 2.1 & 20: Clean 2-7 word display title with golden metallic finish in dark mode)
-                      SproutMetallicHeading(
+                      // Title
+                      Text(
                         _recipe.displayTitle,
-                        style: SproutTypography.h2().copyWith(fontSize: 26),
+                        style: SproutTypography.h2(
+                          color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                        ).copyWith(fontSize: 26, letterSpacing: -0.3),
                       ),
                       if (_recipe.subtitle != null && _recipe.subtitle!.isNotEmpty) ...[
                         const SizedBox(height: 4),

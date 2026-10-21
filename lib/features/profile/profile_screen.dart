@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_empty_state.dart';
 import '../../design/components/sprout_filter_chip.dart';
-import '../../design/components/sprout_metallic_text.dart';
 import '../../design/components/sprout_scaffold.dart';
 import '../../design/radii.dart';
 import '../../design/sprout_assets.dart';
@@ -429,9 +429,14 @@ class ProfileScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SproutMetallicHeading(
+                          Text(
                             'Chef Sprout 👋',
-                            style: SproutTypography.h3(),
+                            style: GoogleFonts.fraunces(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                              letterSpacing: -0.3,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -509,9 +514,14 @@ class ProfileScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: SproutMetallicHeading(
+                    child: Text(
                       'Diet & Cooking Preferences',
-                      style: SproutTypography.h3().copyWith(fontSize: 18),
+                      style: GoogleFonts.fraunces(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                        letterSpacing: -0.2,
+                      ),
                       maxLines: 2,
                     ),
                   ),
@@ -1286,6 +1296,7 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   void _showAboutSproutSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1333,9 +1344,14 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      SproutMetallicHeading(
+                      Text(
                         'Sprout · Culinary Companion',
-                        style: SproutTypography.h2().copyWith(fontSize: 22),
+                        style: GoogleFonts.fraunces(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                          letterSpacing: -0.3,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Container(

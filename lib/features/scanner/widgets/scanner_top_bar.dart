@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../design/colors.dart';
 import '../../../design/components/sprout_bouncy_tap.dart';
 import '../../../design/radii.dart';
@@ -157,6 +158,7 @@ class ScannerTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     return SafeArea(
       bottom: false,
       left: true,
@@ -166,15 +168,16 @@ class ScannerTopBar extends StatelessWidget {
         child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Sprout Wordmark
+          // Sprout Wordmark in Fraunces Serif (Reference 3)
           Flexible(
             child: Text(
               'sprout',
               overflow: TextOverflow.ellipsis,
-              style: SproutTypography.h2(color: SproutColors.primaryInk).copyWith(
-                fontWeight: FontWeight.w800,
+              style: GoogleFonts.fraunces(
+                color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,
-                fontSize: 22,
+                fontSize: 24,
               ),
             ),
           ),
@@ -234,15 +237,17 @@ class ScannerTopBar extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: SproutColors.surface,
+                        color: isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory,
                         borderRadius: SproutRadii.borderPill,
                         border: Border.all(
-                          color: SproutColors.sage.withValues(alpha: 0.35),
+                          color: isDark
+                              ? const Color(0xFF284031)
+                              : SproutColors.subtleBorder,
                           width: 1.0,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: SproutColors.primaryInk.withValues(alpha: 0.03),
+                            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                             blurRadius: 4,
                             offset: const Offset(0, 1),
                           ),
@@ -251,30 +256,17 @@ class ScannerTopBar extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 18,
-                            height: 18,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: SproutColors.primaryInk,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Text(
-                              '?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                          Icon(
+                            Icons.help_outline_rounded,
+                            size: 15,
+                            color: isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
                           Text(
                             'How it works?',
-                            style: SproutTypography.small(
-                              color: SproutColors.primaryInk,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: SproutTypography.smallBold(
+                              color: isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary,
+                            ).copyWith(fontSize: 12.5),
                           ),
                         ],
                       ),

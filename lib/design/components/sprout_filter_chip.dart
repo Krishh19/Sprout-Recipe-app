@@ -21,16 +21,22 @@ class SproutFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
+
     final bg = isSelected
-        ? (isDark ? const Color(0xFF244838) : const Color(0xFF1A1A1A))
-        : (isDark ? SproutColors.nightElevatedSurface : Colors.white);
-    final fg = isSelected ? Colors.white : SproutColors.primaryInk;
+        ? (isDark ? const Color(0xFF244834) : SproutColors.forestGreen)
+        : (isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory);
+
+    final fg = isSelected
+        ? Colors.white
+        : (isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary);
+
     final borderColor = isSelected
-        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF1A1A1A))
-        : (isDark ? SproutColors.sage.withValues(alpha: 0.35) : const Color(0xFFE5E7EB));
+        ? (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
+        : (isDark ? const Color(0xFF284031) : SproutColors.subtleBorder);
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeInOut,
       margin: const EdgeInsets.only(right: 8.0),
       decoration: BoxDecoration(
         color: bg,
@@ -42,16 +48,16 @@ class SproutFilterChip extends StatelessWidget {
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: (isDark ? const Color(0xFF4ADE80) : Colors.black)
-                      .withValues(alpha: isDark ? 0.25 : 0.12),
-                  blurRadius: 6,
-                  offset: const Offset(0, 1),
+                  color: (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
+                      .withValues(alpha: isDark ? 0.30 : 0.22),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ]
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 3,
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.03),
+                  blurRadius: 4,
                   offset: const Offset(0, 1),
                 ),
               ],
@@ -77,7 +83,7 @@ class SproutFilterChip extends StatelessWidget {
                   label,
                   style: SproutTypography.small(
                     color: fg,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
               ],

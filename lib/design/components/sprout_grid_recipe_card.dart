@@ -1,18 +1,18 @@
 import 'dart:ui';
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../models/recipe.dart';
 import '../../repositories/nutrition_service.dart';
 import '../colors.dart';
-import '../radii.dart';
 import '../sprout_haptics.dart';
 import '../typography.dart';
+import 'sprout_diet_badge.dart';
 import 'sprout_recipe_image.dart';
-import 'sprout_shimmer.dart';
 
-/// A modern minimal 2-column grid recipe card with a borderless design,
-/// 1:1 rounded square image, frosted glass overlays, and clean sans-serif typography.
+/// Editorial 2-column grid recipe card inspired by Reference 2,
+/// featuring warm ivory surfaces, rounded image crop, Fraunces serif title,
+/// diet indicator, cooking time, and protein/carb/fat macro breakdown.
 class SproutGridRecipeCard extends StatefulWidget {
   final Recipe recipe;
   final VoidCallback? onTap;
@@ -83,34 +83,51 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
         : (widget.recipe.totalTimeMins > 0 ? '${widget.recipe.totalTimeMins} min' : '20 min');
 
     Widget cardContent(VoidCallback? openAction) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1:1 Aspect Ratio Image Container with Overlays
-          AspectRatio(
-            aspectRatio: 1.0,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Base Rounded Image
-                Hero(
-                  tag: '${widget.heroTagPrefix}_${widget.recipe.id}',
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: SproutRecipeImage(
-                      imageUrl: widget.recipe.imageUrl,
-                      cuisine: widget.recipe.cuisine,
-                      title: widget.recipe.title,
-                      fit: BoxFit.cover,
+      return Container(
+        decoration: BoxDecoration(
+          color: isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isDark ? const Color(0xFF284031) : SproutColors.subtleBorder,
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1:1 Aspect Ratio Image Container with Overlays
+            AspectRatio(
+              aspectRatio: 1.0,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Base Rounded Image
+                  Hero(
+                    tag: '${widget.heroTagPrefix}_${widget.recipe.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: SproutRecipeImage(
+                        imageUrl: widget.recipe.imageUrl,
+                        cuisine: widget.recipe.cuisine,
+                        title: widget.recipe.title,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
-                ),
 
                   // Top-Right Frosted Glass Favorite Button
                   Positioned(
-                    top: 10,
-                    right: 10,
+                    top: 8,
+                    right: 8,
                     child: GestureDetector(
                       onTap: _handleFavorite,
                       behavior: HitTestBehavior.opaque,
@@ -130,7 +147,7 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
                                 height: 32,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.white.withValues(alpha: 0.75),
+                                  color: Colors.white.withValues(alpha: 0.82),
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black.withValues(alpha: 0.10),
@@ -147,7 +164,7 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
                                     size: 17,
                                     color: widget.recipe.isSaved
                                         ? SproutColors.tomato
-                                        : const Color(0xFF1A1A1A),
+                                        : const Color(0xFF24352A),
                                   ),
                                 ),
                               ),
@@ -158,18 +175,18 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
                     ),
                   ),
 
-                  // Bottom-Left Dark Frosted Glass Badge
+                  // Bottom-Left Dark Frosted Glass Badge (Calorie / Time)
                   Positioned(
-                    bottom: 10,
-                    left: 10,
+                    bottom: 8,
+                    left: 8,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(999),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.55),
+                            color: Colors.black.withValues(alpha: 0.58),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Row(
@@ -183,8 +200,8 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
                               Text(
                                 badgeText,
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                   letterSpacing: -0.2,
                                 ),
@@ -199,62 +216,72 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
               ),
             ),
 
-            // 8px Spacing below image
             const SizedBox(height: 8),
 
-            // Title: Clean sans-serif, single line with ellipsis
+            // Title: Editorial Serif Fraunces
             Text(
               widget.recipe.title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: SproutTypography.bodyBold().copyWith(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+              style: GoogleFonts.fraunces(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w700,
+                color: isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary,
+                height: 1.25,
                 letterSpacing: -0.2,
-                height: 1.25,
               ),
             ),
 
-            // Subtitle: Cuisine & Time (2px top margin)
-            const SizedBox(height: 2),
-            Text(
-              '${widget.recipe.cuisine} • ${widget.recipe.totalTimeMins > 0 ? '${widget.recipe.totalTimeMins} min' : '20 min'}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: SproutTypography.small().copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: isDark ? const Color(0xFFA0A0A0) : const Color(0xFF757575),
-                height: 1.25,
-              ),
-            ),
-
-            // Dietary & Macro Row: 4px top margin
             const SizedBox(height: 4),
+
+            // Diet status badge + Cuisine & Time
             Row(
               children: [
-                // Dietary status dot
+                SproutDietBadge(
+                  diet: widget.recipe.diet,
+                  size: 13,
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    '${widget.recipe.cuisine} • ${widget.recipe.totalTimeMins > 0 ? '${widget.recipe.totalTimeMins} min' : '20 min'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SproutTypography.caption(
+                      color: isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary,
+                    ).copyWith(
+                      fontWeight: FontWeight.w500,
+                      height: 1.15,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 5),
+
+            // Dietary & Macro Row: dot + protein/carbs/fat
+            Row(
+              children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: 5.5,
+                  height: 5.5,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: dotColor,
                   ),
                 ),
                 const SizedBox(width: 5),
-
-                // Macros breakdown
                 Expanded(
                   child: Text(
                     '${nutrition.proteinG}g P • ${nutrition.carbsG}g C • ${nutrition.fatG}g F',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SproutTypography.caption().copyWith(
+                    style: SproutTypography.caption(
+                      color: isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary,
+                    ).copyWith(
                       fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? const Color(0xFF888888) : const Color(0xFF666666),
+                      fontWeight: FontWeight.w600,
                       letterSpacing: -0.1,
                     ),
                   ),
@@ -262,8 +289,9 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
               ],
             ),
           ],
-        );
-      }
+        ),
+      );
+    }
 
     if (widget.openBuilder != null) {
       return Semantics(
@@ -294,59 +322,6 @@ class _SproutGridRecipeCardState extends State<SproutGridRecipeCard>
         },
         behavior: HitTestBehavior.opaque,
         child: cardContent(null),
-      ),
-    );
-  }
-}
-
-/// Shimmer skeleton loader for SproutGridRecipeCard matching exact 2-column dimensions.
-class SproutGridRecipeCardSkeleton extends StatelessWidget {
-  const SproutGridRecipeCardSkeleton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Shimmer.fromColors(
-      baseColor: SproutColors.sage.withValues(alpha: 0.18),
-      highlightColor: SproutColors.surface,
-      period: const Duration(milliseconds: 1400),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 1:1 Aspect Ratio Image Shimmer
-          AspectRatio(
-            aspectRatio: 1.0,
-            child: SproutShimmerBox(
-              width: double.infinity,
-              height: double.infinity,
-              borderRadius: BorderRadius.circular(20),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Title Shimmer
-          const SproutShimmerBox(
-            width: 120,
-            height: 15,
-            borderRadius: SproutRadii.borderSm,
-          ),
-          const SizedBox(height: 4),
-
-          // Subtitle Shimmer
-          const SproutShimmerBox(
-            width: 80,
-            height: 12,
-            borderRadius: SproutRadii.borderSm,
-          ),
-          const SizedBox(height: 4),
-
-          // Macro Shimmer
-          const SproutShimmerBox(
-            width: 100,
-            height: 10,
-            borderRadius: SproutRadii.borderSm,
-          ),
-        ],
       ),
     );
   }

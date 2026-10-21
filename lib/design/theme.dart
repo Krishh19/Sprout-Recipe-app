@@ -7,18 +7,20 @@ import 'colors.dart';
 class SproutTheme {
   SproutTheme._();
 
-  /// Light Mode: Luminous sky blue canvas, pure white card surfaces, deep forest green brand
+  /// Light Mode: Warm paper canvas, soft ivory card surfaces, deep botanical forest green brand
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: SproutColors.lightCanvas,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: SproutColors.sproutGreen,
+        seedColor: SproutColors.forestGreen,
         brightness: Brightness.light,
-        primary: SproutColors.sproutGreen,
+        primary: SproutColors.forestGreen,
         surface: SproutColors.lightSurface,
-        onSurface: SproutColors.lightPrimaryInk,
+        onSurface: SproutColors.textPrimary,
+        secondary: SproutColors.botanicalGreen,
+        outline: SproutColors.subtleBorder,
       ),
       textTheme: GoogleFonts.karlaTextTheme(
         ThemeData.light().textTheme,
@@ -26,6 +28,7 @@ class SproutTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.dark,
@@ -36,11 +39,11 @@ class SproutTheme {
         ),
         iconTheme: IconThemeData(color: SproutColors.lightPrimaryInk),
       ),
-      dividerColor: SproutColors.sage.withValues(alpha: 0.18),
+      dividerColor: SproutColors.subtleBorder,
     );
   }
 
-  /// Dark Mode: Nocturnal cyan aurora canvas, midnight slate surface, vibrant mint accent
+  /// Dark Mode: Deep botanical forest canvas, elevated dark green surface, vibrant mint accent
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
@@ -52,6 +55,8 @@ class SproutTheme {
         primary: SproutColors.nightAccent,
         surface: SproutColors.nightSurface,
         onSurface: SproutColors.nightPrimaryInk,
+        secondary: SproutColors.botanicalGreen,
+        outline: Color(0xFF284031),
       ),
       textTheme: GoogleFonts.karlaTextTheme(
         ThemeData.dark().textTheme,
@@ -59,6 +64,7 @@ class SproutTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
@@ -72,7 +78,7 @@ class SproutTheme {
       iconTheme: const IconThemeData(
         color: SproutColors.nightPrimaryInk,
       ),
-      dividerColor: const Color(0xFF1D2F35),
+      dividerColor: const Color(0xFF284031),
     );
   }
 }

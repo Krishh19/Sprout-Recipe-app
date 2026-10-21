@@ -6,6 +6,7 @@ import '../../../design/sprout_haptics.dart';
 import '../../../design/typography.dart';
 import '../../../services/open_food_facts_service.dart';
 import 'scanned_product_sheet.dart';
+import 'sprout_scanner_overlay.dart';
 
 class BarcodeScannerView extends StatefulWidget {
   const BarcodeScannerView({super.key});
@@ -129,16 +130,16 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                 },
               ),
 
-              // Viewfinder Reticle Overlay
-              Container(
+              // Viewfinder Reticle Overlay with Unified Corner Brackets
+              SizedBox(
                 width: 220,
                 height: 140,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    width: 2.5,
-                  ),
+                child: SproutScannerOverlay(
+                  isAnalyzing: _isProcessing,
+                  margin: 6.0,
+                  armLength: 20.0,
+                  cornerRadius: 12.0,
+                  strokeWidth: 2.8,
                 ),
               ),
 

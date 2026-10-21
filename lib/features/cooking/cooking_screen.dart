@@ -10,7 +10,6 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_button.dart';
-import '../../design/components/sprout_metallic_text.dart';
 import '../../design/radii.dart';
 import '../../design/sprout_assets.dart';
 import '../../design/sprout_haptics.dart';
@@ -1244,6 +1243,7 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setSheetState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
           return SafeArea(
             child: SingleChildScrollView(
               child: Container(
@@ -1308,7 +1308,12 @@ class _CookingScreenState extends ConsumerState<CookingScreen>
                       ],
                     ),
                     const SizedBox(height: 12),
-                    SproutMetallicHeading('Bon Appétit! 🎉', style: SproutTypography.h2()),
+                    Text(
+                      'Bon Appétit! 🎉',
+                      style: SproutTypography.h2(
+                        color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       'You successfully completed ${widget.recipe.displayTitle}! Logged to your cook history.',

@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_filter_chip.dart';
-import '../../design/components/sprout_metallic_text.dart';
 import '../../design/components/sprout_onboarding_hero.dart';
 import '../../design/components/sprout_scaffold.dart';
 import '../../design/motion.dart';
@@ -297,20 +296,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 10),
 
                 // Editorial Headline
-                SproutMetallicHeading(
+                Text(
                   data.headline,
                   textAlign: TextAlign.center,
-                  style:
-                      SproutTypography.h1(
-                        color: isDark
-                            ? SproutColors.metallicGoldBase
-                            : SproutColors.sproutGreen,
-                      ).copyWith(
-                        height: 1.16,
-                        fontSize: 27,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.4,
-                      ),
+                  style: SproutTypography.h1(
+                    color: isDark
+                        ? SproutColors.nightPrimaryInk
+                        : SproutColors.forestGreen,
+                  ).copyWith(
+                    height: 1.16,
+                    fontSize: 27,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.4,
+                  ),
                 ),
                 const SizedBox(height: 10),
 
@@ -493,9 +491,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
           // 3. Headline
           Center(
-            child: SproutMetallicHeading(
+            child: Text(
               'Personalize your kitchen',
-              style: SproutTypography.h2().copyWith(fontSize: 23),
+              style: SproutTypography.h2(
+                color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+              ).copyWith(fontSize: 23),
             ),
           ),
           const SizedBox(height: 4),

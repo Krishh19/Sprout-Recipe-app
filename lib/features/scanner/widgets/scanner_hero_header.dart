@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../design/colors.dart';
 import '../../../design/sprout_assets.dart';
 import '../../../design/typography.dart';
@@ -54,32 +55,6 @@ class _SparklePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
-/// CustomPainter that renders a smooth curved golden-orange brush underline
-class _UnderlinePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFE89C33)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.6
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path()
-      ..moveTo(2, size.height * 0.35)
-      ..quadraticBezierTo(
-        size.width * 0.45,
-        size.height * 0.95,
-        size.width - 2,
-        size.height * 0.35,
-      );
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 class ScannerHeroHeader extends StatelessWidget {
   final bool isAnalyzing;
 
@@ -127,53 +102,40 @@ class ScannerHeroHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Line 1: "What's in your" + Gold Sparkle
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      'What\'s in your',
-                      style: SproutTypography.handwritten(
-                        fontSize: headlineSize,
-                        height: 1.12,
-                        fontWeight: FontWeight.w700,
-                        color: SproutColors.primaryInk,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const SproutSparkle(size: 15),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                // Line 2: "kitchen today?"
+                // Headline in Fraunces Serif (Reference 3)
                 Text(
-                  'kitchen today?',
-                  style: SproutTypography.handwritten(
+                  'What\'s in your',
+                  style: GoogleFonts.fraunces(
                     fontSize: headlineSize,
-                    height: 1.12,
+                    height: 1.15,
                     fontWeight: FontWeight.w700,
-                    color: SproutColors.primaryInk,
+                    color: SproutColors.forestGreen,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 3),
-                // Smooth golden curved brush underline
-                CustomPaint(
-                  size: const Size(135, 8),
-                  painter: _UnderlinePainter(),
+                const SizedBox(height: 2),
+                Text(
+                  'kitchen today?',
+                  style: GoogleFonts.fraunces(
+                    fontSize: headlineSize,
+                    height: 1.15,
+                    fontWeight: FontWeight.w700,
+                    color: SproutColors.forestGreen,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 // Description: 3 lines
                 SizedBox(
                   width: descWidth,
                   child: Text(
-                    'Take a photo or add ingredients and Sprout \nwill suggest tasty recipes\nfor you.',
+                    'Take a photo or add ingredients and Sprout will suggest tasty recipes for you.',
                     style: SproutTypography.small(
-                      color: SproutColors.secondaryInk,
+                      color: SproutColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ).copyWith(
-                      fontSize: 13,
-                      height: 1.32,
+                      fontSize: 12.5,
+                      height: 1.3,
                     ),
                   ),
                 ),

@@ -47,6 +47,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   Uint8List? _capturedBytes;
   int _analysisStep = 1; // 1 to 3
   bool _isCancelled = false;
+  bool _isTorchOn = false;
 
   @override
   void dispose() {
@@ -264,64 +265,78 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               ? const NeverScrollableScrollPhysics()
               : const BouncingScrollPhysics(),
           slivers: [
-            // 1. Top Bar with Sprout Wordmark and How it works / Cancel
+            // 1 & 2: Sage Green Upper Container enclosing Brand, Mascot & Mode Tabs (Reference 3)
             SliverToBoxAdapter(
-              child: ScannerTopBar(
-                isAnalyzing: _isAnalyzing,
-                onCancel: _cancelScan,
-              ),
-            ),
-
-            // 2. Hero Header with Kalam typography & Mascot
-            SliverToBoxAdapter(
-              child: ScannerHeroHeader(
-                isAnalyzing: _isAnalyzing,
-              ),
-            ),
-
-            // Mode Selector Pill (AI Vision vs Barcode)
-            if (!_isAnalyzing)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? SproutColors.nightElevatedSurface
-                          : SproutColors.sage.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.transparent,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildModeTab(
-                            icon: Icons.camera_alt_rounded,
-                            label: 'AI Vision',
-                            isSelected: _mode == ScannerMode.vision,
-                            onTap: () => setState(() => _mode = ScannerMode.vision),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: _buildModeTab(
-                            icon: Icons.qr_code_scanner_rounded,
-                            label: 'Barcode',
-                            isSelected: _mode == ScannerMode.barcode,
-                            onTap: () => setState(() => _mode = ScannerMode.barcode),
-                          ),
-                        ),
-                      ],
-                    ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E3528) : SproutColors.sage,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(32),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ScannerTopBar(
+                      isAnalyzing: _isAnalyzing,
+                      onCancel: _cancelScan,
+                    ),
+                    ScannerHeroHeader(
+                      isAnalyzing: _isAnalyzing,
+                    ),
+                    if (!_isAnalyzing)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 18),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? SproutColors.nightElevatedSurface
+                                : SproutColors.paleSage,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : SproutColors.subtleBorder.withValues(alpha: 0.6),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildModeTab(
+                                  icon: Icons.camera_alt_rounded,
+                                  label: 'AI Vision',
+                                  isSelected: _mode == ScannerMode.vision,
+                                  onTap: () => setState(() => _mode = ScannerMode.vision),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: _buildModeTab(
+                                  icon: Icons.qr_code_scanner_rounded,
+                                  label: 'Barcode',
+                                  isSelected: _mode == ScannerMode.barcode,
+                                  onTap: () => setState(() => _mode = ScannerMode.barcode),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 18)),
 
             // 3. Viewfinder Hero Card
             if (_mode == ScannerMode.barcode)
@@ -337,107 +352,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               ),
 
               if (!_isAnalyzing) ...[
-              const SliverToBoxAdapter(child: SizedBox(height: 14)),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Row(
-                    children: [
-                      // Camera Action Button
-                      Expanded(
-                        child: SproutBouncyTap(
-                          onTap: () => _pickAndAnalyzeImage(ImageSource.camera),
-                          child: Container(
-                            height: 48,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: SproutColors.sproutGreen,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: SproutColors.sproutGreen.withValues(alpha: 0.28),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    'Camera',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: SproutTypography.bodyBold(color: Colors.white),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Upload Action Button
-                      Expanded(
-                        child: SproutBouncyTap(
-                          onTap: () => _pickAndAnalyzeImage(ImageSource.gallery),
-                          child: Container(
-                            height: 48,
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: BoxDecoration(
-                              color: SproutColors.surface,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.12)
-                                    : SproutColors.sage.withValues(alpha: 0.35),
-                                width: 1.2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.04),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.photo_library_rounded,
-                                  color: SproutColors.primaryInk,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-                                Flexible(
-                                  child: Text(
-                                    'Upload Photo',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: SproutTypography.bodyBold(color: SproutColors.primaryInk),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                SliverToBoxAdapter(
+                  child: _buildCaptureControlBar(isDark),
                 ),
-              ),
+              ],
             ],
-          ],
 
           const SliverToBoxAdapter(child: SizedBox(height: 14)),
 
@@ -593,7 +513,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 48),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => const SproutRecipeRowSkeleton(),
+                        (context, index) => SproutRecipeRowSkeleton(),
                         childCount: 3,
                       ),
                     ),
@@ -681,15 +601,17 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         onTap();
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color: isSelected ? SproutColors.surface : Colors.transparent,
+          color: isSelected
+              ? (isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+                    color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
@@ -703,8 +625,8 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               icon,
               size: 16,
               color: isSelected
-                  ? (isDark ? SproutColors.nightAccent : SproutColors.sproutGreen)
-                  : SproutColors.secondaryInk,
+                  ? (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
+                  : (isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -713,13 +635,225 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: SproutTypography.caption(
-                  color: isSelected ? SproutColors.primaryInk : SproutColors.secondaryInk,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
+                  color: isSelected
+                      ? (isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary)
+                      : (isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary),
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                ).copyWith(fontSize: 13),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCaptureControlBar(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // 1. Gallery Button
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SproutBouncyTap(
+                onTap: () => _pickAndAnalyzeImage(ImageSource.gallery),
+                child: Semantics(
+                  button: true,
+                  label: 'Choose photo from gallery',
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? SproutColors.nightElevatedSurface
+                          : SproutColors.surface,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.12)
+                            : SproutColors.subtleBorder,
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.photo_library_rounded,
+                      color: isDark
+                          ? SproutColors.nightPrimaryInk
+                          : SproutColors.textPrimary,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Gallery',
+                style: SproutTypography.caption(
+                  color: isDark
+                      ? SproutColors.nightSecondaryInk
+                      : SproutColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ).copyWith(fontSize: 11),
+              ),
+            ],
+          ),
+
+          // 2. Large Central Shutter Button
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SproutBouncyTap(
+                onTap: () {
+                  SproutHaptics.heavy();
+                  _pickAndAnalyzeImage(ImageSource.camera);
+                },
+                child: Semantics(
+                  button: true,
+                  label: 'Capture photo of ingredients',
+                  child: Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF69F0AE).withValues(alpha: 0.6)
+                            : SproutColors.forestGreen.withValues(alpha: 0.45),
+                        width: 3.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: (isDark
+                                  ? const Color(0xFF69F0AE)
+                                  : SproutColors.forestGreen)
+                              .withValues(alpha: isDark ? 0.35 : 0.25),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF264C37)
+                              : SproutColors.forestGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Capture',
+                style: SproutTypography.caption(
+                  color: isDark
+                      ? SproutColors.nightPrimaryInk
+                      : SproutColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ).copyWith(fontSize: 12),
+              ),
+            ],
+          ),
+
+          // 3. Torch / Flashlight Toggle Button
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SproutBouncyTap(
+                onTap: () {
+                  SproutHaptics.light();
+                  setState(() => _isTorchOn = !_isTorchOn);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        _isTorchOn
+                            ? 'Flashlight enabled for capture 💡'
+                            : 'Flashlight turned off',
+                      ),
+                      duration: const Duration(milliseconds: 1200),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: Semantics(
+                  button: true,
+                  label: _isTorchOn ? 'Turn flashlight off' : 'Turn flashlight on',
+                  child: Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: _isTorchOn
+                          ? (isDark
+                              ? const Color(0xFF69F0AE).withValues(alpha: 0.22)
+                              : SproutColors.paleSage)
+                          : (isDark
+                              ? SproutColors.nightElevatedSurface
+                              : SproutColors.surface),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _isTorchOn
+                            ? const Color(0xFF69F0AE)
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.12)
+                                : SproutColors.subtleBorder),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      _isTorchOn
+                          ? Icons.flash_on_rounded
+                          : Icons.flash_off_rounded,
+                      color: _isTorchOn
+                          ? (isDark ? const Color(0xFF69F0AE) : SproutColors.forestGreen)
+                          : (isDark
+                              ? SproutColors.nightSecondaryInk
+                              : SproutColors.textSecondary),
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Flash',
+                style: SproutTypography.caption(
+                  color: isDark
+                      ? SproutColors.nightSecondaryInk
+                      : SproutColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ).copyWith(fontSize: 11),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

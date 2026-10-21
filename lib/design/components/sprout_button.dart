@@ -23,7 +23,7 @@ class SproutButton extends StatefulWidget {
     this.variant = SproutButtonVariant.primary,
     this.icon,
     this.isLoading = false,
-    this.height = 54.0,
+    this.height = 52.0,
     this.width,
   });
 
@@ -55,17 +55,20 @@ class _SproutButtonState extends State<SproutButton> {
 
     switch (widget.variant) {
       case SproutButtonVariant.primary:
-        bg = isDark ? const Color(0xFF2E6349) : SproutColors.sproutGreen;
+        bg = isDark ? const Color(0xFF254B36) : SproutColors.forestGreen;
         fg = Colors.white;
         break;
       case SproutButtonVariant.secondary:
-        bg = SproutColors.surface;
-        fg = SproutColors.primaryInk;
-        border = Border.all(color: SproutColors.sage.withValues(alpha: 0.3), width: 1.2);
+        bg = isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory;
+        fg = isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary;
+        border = Border.all(
+          color: isDark ? const Color(0xFF284031) : SproutColors.subtleBorder,
+          width: 1.2,
+        );
         break;
       case SproutButtonVariant.ghost:
         bg = Colors.transparent;
-        fg = SproutColors.primaryInk;
+        fg = isDark ? SproutColors.nightAccent : SproutColors.forestGreen;
         break;
       case SproutButtonVariant.destructive:
         bg = SproutColors.error;
@@ -98,9 +101,10 @@ class _SproutButtonState extends State<SproutButton> {
                       widget.onPressed != null
                   ? [
                       BoxShadow(
-                        color: SproutColors.sproutGreen.withValues(alpha: 0.25),
+                        color: (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
+                            .withValues(alpha: isDark ? 0.28 : 0.20),
                         blurRadius: 14,
-                        offset: const Offset(0, 6),
+                        offset: const Offset(0, 4),
                       ),
                     ]
                   : null,
@@ -108,42 +112,34 @@ class _SproutButtonState extends State<SproutButton> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                customBorder: SproutRadii.squircleButton(),
-                onTap: widget.isLoading ? null : widget.onPressed,
+                borderRadius: BorderRadius.circular(16),
+                onTap: _isInteractive ? widget.onPressed : null,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22.0),
-                  child: Row(
-                    mainAxisSize: widget.width == null
-                        ? MainAxisSize.min
-                        : MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (widget.isLoading) ...[
-                        SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            valueColor: AlwaysStoppedAnimation<Color>(fg),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Center(
+                    child: widget.isLoading
+                        ? SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(fg),
+                            ),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (widget.icon != null) ...[
+                                widget.icon!,
+                                const SizedBox(width: 8),
+                              ],
+                              Text(
+                                widget.label,
+                                style: SproutTypography.button(color: fg),
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                      ] else if (widget.icon != null) ...[
-                        widget.icon!,
-                        const SizedBox(width: 10),
-                      ],
-                      Flexible(
-                        child: Text(
-                          widget.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SproutTypography.body(
-                            color: fg,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ),

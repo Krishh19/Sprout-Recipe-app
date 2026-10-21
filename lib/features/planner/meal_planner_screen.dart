@@ -245,15 +245,6 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                                 : SproutColors.sage.withValues(alpha: 0.3),
                             width: 1.5,
                           ),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: SproutColors.sproutGreen.withValues(alpha: 0.3),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ]
-                              : null,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,

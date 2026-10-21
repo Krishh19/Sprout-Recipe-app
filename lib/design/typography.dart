@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'colors.dart';
 
 class SproutTypography {
-  // Display / Serif (Fraunces)
+  // ---------------------------------------------------------------------------
+  // Display / Editorial Serif (Fraunces)
+  // ---------------------------------------------------------------------------
   static TextStyle display({Color? color}) =>
       GoogleFonts.fraunces(
         fontSize: 38,
@@ -38,7 +40,24 @@ class SproutTypography {
         color: color ?? SproutColors.primaryInk,
       );
 
-  // Golden Metallic Heading styles
+  /// Editorial terracotta heading for special food modules (e.g. "Recent Cooks")
+  static TextStyle editorialH2({Color? color}) =>
+      GoogleFonts.fraunces(
+        fontSize: 24,
+        height: 30 / 24,
+        fontWeight: FontWeight.w700,
+        color: color ?? (SproutColors.isDarkMode ? SproutColors.carrot : SproutColors.terracotta),
+      );
+
+  static TextStyle editorialH3({Color? color}) =>
+      GoogleFonts.fraunces(
+        fontSize: 20,
+        height: 26 / 20,
+        fontWeight: FontWeight.w700,
+        color: color ?? (SproutColors.isDarkMode ? SproutColors.carrot : SproutColors.terracotta),
+      );
+
+  // Golden Metallic Heading styles (for warm shimmer banners)
   static TextStyle metallicDisplay({
     double? fontSize,
     FontWeight fontWeight = FontWeight.w700,
@@ -80,7 +99,9 @@ class SproutTypography {
             : SproutColors.primaryInk,
       );
 
+  // ---------------------------------------------------------------------------
   // Body / UI (Karla)
+  // ---------------------------------------------------------------------------
   static TextStyle body({
     Color? color,
     FontWeight fontWeight = FontWeight.w400,
@@ -130,7 +151,18 @@ class SproutTypography {
         color: color ?? SproutColors.muted,
       );
 
+  static TextStyle button({Color? color, FontWeight fontWeight = FontWeight.w700}) =>
+      GoogleFonts.karla(
+        fontSize: 15,
+        height: 20 / 15,
+        fontWeight: fontWeight,
+        color: color ?? Colors.white,
+        letterSpacing: 0.1,
+      );
+
+  // ---------------------------------------------------------------------------
   // Handwritten / Display Accent (Kalam)
+  // ---------------------------------------------------------------------------
   static TextStyle handwritten({
     double fontSize = 24,
     FontWeight fontWeight = FontWeight.w700,

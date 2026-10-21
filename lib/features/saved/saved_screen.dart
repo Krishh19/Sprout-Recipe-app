@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_blur_header.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_button.dart';
 import '../../design/components/sprout_empty_state.dart';
-import '../../design/components/sprout_metallic_text.dart';
 import '../../design/components/sprout_recipe_row.dart';
 import '../../design/components/sprout_scaffold.dart';
 import '../../design/components/sprout_shimmer.dart';
@@ -116,6 +116,7 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
     final savedAsync = ref.watch(savedRecipesProvider);
     final collectionsAsync = ref.watch(collectionsProvider);
 
@@ -135,10 +136,18 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SproutMetallicHeading('Saved Recipes', style: SproutTypography.h2()),
+                  Text(
+                    'Saved Recipes',
+                    style: GoogleFonts.fraunces(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? SproutColors.nightPrimaryInk : SproutColors.forestGreen,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline_rounded, size: 24),
-                    color: SproutColors.accent,
+                    color: isDark ? SproutColors.nightAccent : SproutColors.forestGreen,
                     tooltip: 'New Collection',
                     onPressed: _showCreateCollectionDialog,
                   ),
@@ -153,10 +162,11 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
               padding: const EdgeInsets.all(3),
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                color: SproutColors.surface,
+                color: isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory,
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: SproutColors.sage.withValues(alpha: 0.2),
+                  color: isDark ? const Color(0xFF284031) : SproutColors.subtleBorder,
+                  width: 1.0,
                 ),
               ),
               child: TabBar(
@@ -165,11 +175,19 @@ class _SavedScreenState extends ConsumerState<SavedScreen>
                 overlayColor: WidgetStateProperty.all(Colors.transparent),
                 indicatorSize: TabBarIndicatorSize.tab,
                 indicator: BoxDecoration(
-                  color: SproutColors.sproutGreen,
+                  color: isDark ? const Color(0xFF244834) : SproutColors.forestGreen,
                   borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
+                          .withValues(alpha: isDark ? 0.28 : 0.20),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
                 labelColor: Colors.white,
-                unselectedLabelColor: SproutColors.secondaryInk,
+                unselectedLabelColor: isDark ? SproutColors.nightSecondaryInk : SproutColors.textSecondary,
                 labelStyle: SproutTypography.smallBold(),
                 dividerColor: Colors.transparent,
                 tabs: const [

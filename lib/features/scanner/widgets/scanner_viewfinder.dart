@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../design/colors.dart';
 import '../../../design/sprout_assets.dart';
 import '../../../design/typography.dart';
+import 'sprout_scanner_overlay.dart';
 
 class ScannerViewfinder extends StatefulWidget {
   final bool isAnalyzing;
@@ -30,13 +31,11 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  late AnimationController _detectionController;
-
   @override
   void initState() {
     super.initState();
 
-    // Laser scan beam: moves top to bottom and repeats
+    // Laser scan beam: moves top to bottom and repeats during analysis
     _laserController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -45,24 +44,15 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
       CurvedAnimation(parent: _laserController, curve: Curves.easeInOutSine),
     );
 
-    // Subtle pulse for focus ring and scanning dot
+    // Subtle pulse for active status indicator
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-    _pulseAnimation = Tween<double>(begin: 0.94, end: 1.06).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-
-    // Dynamic detection rings animation during scanning
-    _detectionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3200),
+      duration: const Duration(milliseconds: 1000),
     );
 
     if (widget.isAnalyzing) {
       _laserController.repeat(reverse: true);
-      _detectionController.repeat();
+      _pulseController.repeat(reverse: true);
     }
   }
 
@@ -71,12 +61,12 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
     super.didUpdateWidget(oldWidget);
     if (widget.isAnalyzing && !oldWidget.isAnalyzing) {
       _laserController.repeat(reverse: true);
-      _detectionController.repeat();
+      _pulseController.repeat(reverse: true);
     } else if (!widget.isAnalyzing && oldWidget.isAnalyzing) {
       _laserController.stop();
       _laserController.reset();
-      _detectionController.stop();
-      _detectionController.reset();
+      _pulseController.stop();
+      _pulseController.reset();
     }
   }
 
@@ -84,7 +74,6 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
   void dispose() {
     _laserController.dispose();
     _pulseController.dispose();
-    _detectionController.dispose();
     super.dispose();
   }
 
@@ -94,7 +83,7 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20.0),
-      height: 226,
+      height: 236,
       decoration: BoxDecoration(
         color: isDark ? SproutColors.nightSurface : SproutColors.surface,
         borderRadius: BorderRadius.circular(24),
@@ -125,7 +114,7 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 1. Background Image Layer
+            // 1. Background Image Layer: Captured photo when analyzing, else clean preview backdrop
             if (widget.isAnalyzing && widget.capturedImageBytes != null)
               Image.memory(
                 widget.capturedImageBytes!,
@@ -150,16 +139,16 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
                 ),
               ),
 
-            // 2. Dark Vignette Gradient
+            // 2. Dark Vignette Gradient for high contrast on guides
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.12),
+                    Colors.black.withValues(alpha: 0.16),
                     Colors.transparent,
-                    Colors.black.withValues(alpha: widget.isAnalyzing ? 0.32 : 0.42),
+                    Colors.black.withValues(alpha: widget.isAnalyzing ? 0.38 : 0.44),
                   ],
                   stops: const [0.0, 0.45, 1.0],
                 ),
@@ -172,14 +161,16 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
                 painter: _GridOverlayPainter(),
               ),
 
-            // 4. Corner Brackets (Present in both states)
-            CustomPaint(
-              painter: _CornerBracketsPainter(
-                glow: widget.isAnalyzing,
-              ),
+            // 4. Unified Symmetrical Scanner Corner Brackets
+            const SproutScannerOverlay(
+              isAnalyzing: true,
+              margin: 18.0,
+              armLength: 28.0,
+              cornerRadius: 14.0,
+              strokeWidth: 3.2,
             ),
 
-            // 5. Analyzing-Only: Animated Scanning Laser Beam & Sparkles
+            // 5. Analyzing State: Animated Laser Beam & Status Pill
             if (widget.isAnalyzing) ...[
               AnimatedBuilder(
                 animation: _laserAnimation,
@@ -197,18 +188,18 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
                 top: 14,
                 left: 14,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xCC133118),
+                    color: const Color(0xE6133118),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF69F0AE).withValues(alpha: 0.5),
+                      color: const Color(0xFF69F0AE).withValues(alpha: 0.6),
                       width: 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF69F0AE).withValues(alpha: 0.25),
-                        blurRadius: 8,
+                        color: const Color(0xFF69F0AE).withValues(alpha: 0.30),
+                        blurRadius: 10,
                       ),
                     ],
                   ),
@@ -221,8 +212,8 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
                           return Transform.scale(
                             scale: _pulseAnimation.value,
                             child: Container(
-                              width: 7,
-                              height: 7,
+                              width: 8,
+                              height: 8,
                               decoration: const BoxDecoration(
                                 color: Color(0xFF69F0AE),
                                 shape: BoxShape.circle,
@@ -237,110 +228,58 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
                           );
                         },
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
-                        'Scanning...',
+                        'Analyzing ingredients with AI...',
                         style: SproutTypography.caption(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
-                        ).copyWith(letterSpacing: 0.3, fontSize: 11),
+                        ).copyWith(letterSpacing: 0.3, fontSize: 11.5),
                       ),
                     ],
                   ),
                 ),
               ),
-
-              // Sparkle stars
+            ] else ...[
+              // 6. Idle State: Clean, concise guidance inside overlay's safe area
               Positioned(
-                top: 40,
-                right: 42,
-                child: Image.asset(
-                  SproutAssets.starSparkle,
-                  width: 15,
-                  height: 15,
-                ),
-              ),
-              Positioned(
-                bottom: 45,
-                left: 45,
-                child: Image.asset(
-                  SproutAssets.starSparkle,
-                  width: 13,
-                  height: 13,
-                ),
-              ),
-
-              // Animated Temporary Ingredient Detection Rings / Labels
-              AnimatedBuilder(
-                animation: _detectionController,
-                builder: (context, _) {
-                  final val = _detectionController.value;
-                  // Detection 1: appears at 0.15 - 0.55
-                  final show1 = val >= 0.15 && val <= 0.55;
-                  final op1 = show1
-                      ? (val < 0.25 ? (val - 0.15) * 10 : (val > 0.45 ? (0.55 - val) * 10 : 1.0)).clamp(0.0, 1.0)
-                      : 0.0;
-
-                  // Detection 2: appears at 0.50 - 0.90
-                  final show2 = val >= 0.50 && val <= 0.90;
-                  final op2 = show2
-                      ? (val < 0.60 ? (val - 0.50) * 10 : (val > 0.80 ? (0.90 - val) * 10 : 1.0)).clamp(0.0, 1.0)
-                      : 0.0;
-
-                  return Stack(
-                    children: [
-                      if (op1 > 0)
-                        Positioned(
-                          top: 85,
-                          left: 90,
-                          child: Opacity(
-                            opacity: op1,
-                            child: _buildDetectionBadge('fresh produce'),
-                          ),
-                        ),
-                      if (op2 > 0)
-                        Positioned(
-                          top: 115,
-                          right: 80,
-                          child: Opacity(
-                            opacity: op2,
-                            child: _buildDetectionBadge('spices & herbs'),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ],
-
-            // 6. Idle-Only: Center Focus Ring & "Tap to scan ingredients"
-            if (!widget.isAnalyzing) ...[
-              Center(
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, _) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.92),
-                            width: 2.2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF69F0AE).withValues(alpha: 0.35),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.58),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.22),
+                        width: 1.0,
                       ),
-                    );
-                  },
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.center_focus_strong_rounded,
+                          color: Color(0xFF69F0AE),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Point at ingredients',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SproutTypography.caption(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ).copyWith(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -349,132 +288,6 @@ class _ScannerViewfinderState extends State<ScannerViewfinder>
       ),
     );
   }
-
-  Widget _buildDetectionBadge(String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFF69F0AE),
-              width: 2.0,
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0xFF69F0AE),
-                blurRadius: 8,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 3),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: const Color(0xDD143818),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: const Color(0xFF69F0AE),
-              width: 0.8,
-            ),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// CustomPainter that renders glowing neon green rounded corner brackets
-class _CornerBracketsPainter extends CustomPainter {
-  final bool glow;
-
-  _CornerBracketsPainter({this.glow = false});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const margin = 16.0;
-    const arm = 28.0;
-    const cornerRadius = 12.0;
-
-    final basePaint = Paint()
-      ..color = const Color(0xFF69F0AE)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2
-      ..strokeCap = StrokeCap.round;
-
-    final glowPaint = Paint()
-      ..color = const Color(0xFF69F0AE).withValues(alpha: glow ? 0.7 : 0.4)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = glow ? 5.5 : 4.2
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, glow ? 5.0 : 3.0);
-
-    void drawCorner(Paint paint) {
-      // Top Left
-      final tlPath = Path()
-        ..moveTo(margin, margin + arm)
-        ..lineTo(margin, margin + cornerRadius)
-        ..arcToPoint(
-          Offset(margin + cornerRadius, margin),
-          radius: const Radius.circular(cornerRadius),
-        )
-        ..lineTo(margin + arm, margin);
-      canvas.drawPath(tlPath, paint);
-
-      // Top Right
-      final trPath = Path()
-        ..moveTo(size.width - margin - arm, margin)
-        ..lineTo(size.width - margin - cornerRadius, margin)
-        ..arcToPoint(
-          Offset(size.width - margin, margin + cornerRadius),
-          radius: const Radius.circular(cornerRadius),
-        )
-        ..lineTo(size.width - margin, margin + arm);
-      canvas.drawPath(trPath, paint);
-
-      // Bottom Left
-      final blPath = Path()
-        ..moveTo(margin, size.height - margin - arm)
-        ..lineTo(margin, size.height - margin - cornerRadius)
-        ..arcToPoint(
-          Offset(margin + cornerRadius, size.height - margin),
-          radius: const Radius.circular(cornerRadius),
-        )
-        ..lineTo(margin + arm, size.height - margin);
-      canvas.drawPath(blPath, paint);
-
-      // Bottom Right
-      final brPath = Path()
-        ..moveTo(size.width - margin - arm, size.height - margin)
-        ..lineTo(size.width - margin - cornerRadius, size.height - margin)
-        ..arcToPoint(
-          Offset(size.width - margin, size.height - margin - cornerRadius),
-          radius: const Radius.circular(cornerRadius),
-        )
-        ..lineTo(size.width - margin, size.height - margin - arm);
-      canvas.drawPath(brPath, paint);
-    }
-
-    drawCorner(glowPaint);
-    drawCorner(basePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CornerBracketsPainter oldDelegate) =>
-      oldDelegate.glow != glow;
 }
 
 /// CustomPainter that renders a translucent neon green grid across the viewfinder
