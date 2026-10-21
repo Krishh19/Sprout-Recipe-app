@@ -11,12 +11,12 @@
 <p align="center">
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-v3.13+-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-v3.13+-0175C2?logo=dart&logoColor=white" alt="Dart"></a>
-  <a href="https://github.com/Krishh19/Sprout-Recipe-app/releases"><img src="https://img.shields.io/badge/Release-v1.1.0-4CAF50?logo=github&logoColor=white" alt="Release"></a>
+  <a href="https://github.com/Krishh19/Sprout-Recipe-app/releases"><img src="https://img.shields.io/badge/Release-v1.1.1-4CAF50?logo=github&logoColor=white" alt="Release"></a>
   <a href="https://supabase.com"><img src="https://img.shields.io/badge/Supabase-Backend%20%26%20Edge%20Functions-3ECF8E?logo=supabase&logoColor=white" alt="Supabase"></a>
   <a href="https://groq.com"><img src="https://img.shields.io/badge/Groq-Qwen%2027B%20Inference-F05A28" alt="Groq"></a>
   <a href="https://ai.google.dev"><img src="https://img.shields.io/badge/Gemini-Multimodal%20Vision-4285F4?logo=google&logoColor=white" alt="Gemini"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="https://github.com/Krishh19/Sprout-Recipe-app/actions"><img src="https://img.shields.io/badge/Tests-198%20Passing-brightgreen" alt="Tests"></a>
+  <a href="https://github.com/Krishh19/Sprout-Recipe-app/actions"><img src="https://img.shields.io/badge/Tests-199%20Passing-brightgreen" alt="Tests"></a>
 </p>
 
 ---
@@ -239,7 +239,7 @@ supabase functions deploy sprout-ai
 
 ## 🧪 Testing & Quality Assurance
 
-Sprout maintains 100% test pass rates across 198 unit and widget tests:
+Sprout maintains 100% test pass rates across 199 unit and widget tests:
 
 ```bash
 # Run Dart analyzer (ensures 0 lints, 0 warnings, 0 errors)

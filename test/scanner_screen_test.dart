@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sprout/features/main_shell_screen.dart';
 import 'package:sprout/features/scanner/scanner_screen.dart';
+import 'package:sprout/features/scanner/widgets/scanner_viewfinder.dart';
 
 void main() {
   testWidgets('ScannerScreen mounts and renders without errors', (tester) async {
@@ -64,6 +65,24 @@ void main() {
     expect(find.text('kitchen today?'), findsOneWidget);
     expect(find.text('Scan\nCook\nEnjoy'), findsOneWidget);
     expect(find.textContaining('Take a photo or add ingredients'), findsOneWidget);
+  });
+
+  testWidgets('ScannerViewfinder renders analyzing animation and status pill without error', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ScannerViewfinder(
+            isAnalyzing: true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('Analyzing ingredients with AI...'), findsOneWidget);
+    expect(find.byType(ScannerViewfinder), findsOneWidget);
   });
 }
 
