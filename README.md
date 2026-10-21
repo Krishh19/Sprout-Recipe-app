@@ -5,17 +5,18 @@
 <h1 align="center">🌱 Sprout — AI Recipe & Smart Kitchen Companion</h1>
 
 <p align="center">
-  <b>Cook smarter, eat healthier, and minimize food waste with multimodal AI vision, voice-guided cooking, and intelligent pantry matching.</b>
+  <b>Cook smarter, eat healthier, and minimize food waste with multimodal AI vision, voice-guided cooking, smart meal planning, and intelligent pantry matching.</b>
 </p>
 
 <p align="center">
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-v3.13+-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-v3.13+-0175C2?logo=dart&logoColor=white" alt="Dart"></a>
+  <a href="https://github.com/Krishh19/Sprout-Recipe-app/releases"><img src="https://img.shields.io/badge/Release-v1.1.0-4CAF50?logo=github&logoColor=white" alt="Release"></a>
   <a href="https://supabase.com"><img src="https://img.shields.io/badge/Supabase-Backend%20%26%20Edge%20Functions-3ECF8E?logo=supabase&logoColor=white" alt="Supabase"></a>
   <a href="https://groq.com"><img src="https://img.shields.io/badge/Groq-Qwen%2027B%20Inference-F05A28" alt="Groq"></a>
   <a href="https://ai.google.dev"><img src="https://img.shields.io/badge/Gemini-Multimodal%20Vision-4285F4?logo=google&logoColor=white" alt="Gemini"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="https://github.com/Krishh19/Sprout-Recipe-app/actions"><img src="https://img.shields.io/badge/Tests-172%20Passing-brightgreen" alt="Tests"></a>
+  <a href="https://github.com/Krishh19/Sprout-Recipe-app/actions"><img src="https://img.shields.io/badge/Tests-198%20Passing-brightgreen" alt="Tests"></a>
 </p>
 
 ---
@@ -31,6 +32,7 @@
 - [Supabase Edge Functions Backend](#-supabase-edge-functions-backend)
 - [Testing & Quality Assurance](#-testing--quality-assurance)
 - [Security Model](#-security-model)
+- [Release Notes & Tagging](#-release-notes--tagging)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -40,16 +42,31 @@
 
 **Sprout** is an intelligent Flutter culinary companion designed to turn whatever you have in your fridge or pantry into delicious, nutritious meals. 
 
-By pairing **multimodal computer vision** (Google Gemini) with **ultra-fast language inference** (Groq Qwen 27B) and a **cloud-synced pantry database** (Supabase), Sprout eliminates mealtime indecision, tracks real-time nutrition, and coaches you step-by-step through every recipe completely hands-free.
+By pairing **multimodal computer vision** (Google Gemini) with **ultra-fast language inference** (Groq Qwen 27B) and a **cloud-synced pantry database** (Supabase), Sprout eliminates mealtime indecision, tracks real-time nutrition, plans your weekly diet, and coaches you step-by-step through every recipe completely hands-free.
 
 ---
 
 ## ✨ Key Features
 
-### 📸 Multimodal AI Ingredient & Barcode Scanner
-- **Live Vision Scanning**: Point your camera at loose vegetables, spices, or produce. Gemini multimodal vision instantly identifies ingredients and tags them with confidence scores.
+### 🔍 Explore & Smart Search
+- **Animated Typewriter Suggestions**: Typewriter animation with blinking cursor rotating through realistic prompts (*"Search high-protein recipes..."*, *"Try Indian dinner recipes..."*, *"Find quick breakfast ideas..."*). Smoothly suspends on user focus and respects reduced-motion accessibility.
+- **Bilingual Voice Search**: Integrated Speech-to-Text (STT) supporting English (`en_IN`, `en_US`) and Hindi (`hi_IN`) with pulsing microphone feedback, cancelable listening, and automatic typed fallback.
+- **Dedicated Discovery Shortcuts**: 6 quick-intent pills (`All`, `Indian`, `Quick`, `High Protein`, `Healthy`, `Vegetarian`) cleanly separated from advanced filters.
+- **Comprehensive Filter Sheet**: Deep multi-parameter filtering across cuisines, dietary preferences, max cooking time slider, calorie ceilings, and included/excluded pantry items.
+- **Structured Feed**: Categorized sections including *Recommended for You ✨* (with working full-catalog navigation), *Browse by Cuisine 🌍*, and complete recipe explore listings.
+
+### 📸 Unified AI Ingredient & Barcode Scanner
+- **Symmetrical Vision Overlay**: Redesigned viewfinder overlay (`SproutScannerOverlay`) featuring 4 mathematically symmetrical clockwise-arc corner brackets in botanical green (`#69F0AE`).
+- **Clean Camera Viewfinder**: Clear instructions (*"Point at ingredients"*) without decorative mock badges or deceptive radar effects.
+- **Ergonomic Capture Control Bar**: Ergonomic bottom bar with Gallery photo picker, prominent 76×76 shutter button, and flashlight toggle.
+- **Genuine AI Verification Flow**: Review recognized ingredients, remove false detections, type in staples, and query matching recipes.
 - **Packaged Food Barcodes**: Built-in barcode scanner integrated with **Open Food Facts API** to fetch certified nutritional facts, brand details, and allergen warnings in real-time.
-- **Quick-Add Ingredient Tray**: One-tap bubbles to easily add staple ingredients (`Tomato`, `Potato`, `Coriander`, `Cream`) to your active scan.
+
+### 📅 Smart Pantry & Weekly Meal Planner
+- **Hand-Drawn Mascot Empty State**: Artisan colored-pencil illustration of Sprout with an open planner notebook, yellow pencil, and botanical doodles in warm cream and sage (zero pink).
+- **Compact Dual Home Cards**: Streamlined side-by-side action cards (*"Scan your ingredients"* & *"Plan your week"*) with full-card touch targets and zero layout overflow.
+- **Interactive Day-by-Day Calendar**: Calendar carousel with clean, unclipped date pills and zero shadow artifacts.
+- **Auto-Generated Grocery Export**: Export individual days or the entire week's meal schedule directly into your interactive shopping list.
 
 ### ⚡ Ultra-Fast AI Culinary Intelligence (Groq Qwen 27B)
 - **Smart Substitutions**: Out of butter, buttermilk, or eggs? Get context-aware, culinary-accurate substitutions with custom baking/cooking ratios in milliseconds.
@@ -57,19 +74,14 @@ By pairing **multimodal computer vision** (Google Gemini) with **ultra-fast lang
 - **Nutrition Decomposition**: Instant calculation of calories, protein, carbs, fats, fiber, and micronutrients tailored to your exact serving sizes.
 
 ### 🍳 Hands-Free Voice-Guided Cooking Mode
-- **Step-by-Step Focus**: Clean, high-contrast, distraction-free cards highlighting the current instruction.
-- **Voice Control & Audio Feedback**: Integrated Speech-to-Text (STT) for hands-free navigation ("Next", "Back", "Repeat") and custom Text-to-Speech (TTS) reading steps aloud so you never have to touch your phone with messy hands.
-- **Independent Step Timers**: Built-in audio countdown timers synced directly to individual recipe steps with soothing completion chimes.
+- **Step-by-Step Focus**: Clean, high-contrast, distraction-free cards highlighting the active instruction.
+- **Voice Control & Audio Feedback**: Hands-free navigation ("Next", "Back", "Repeat") and custom Text-to-Speech (TTS) reading steps aloud with offline TTS fallback.
+- **Independent Step Timers**: Audio countdown timers synced directly to individual recipe steps with soothing completion chimes.
 
-### 🧺 Smart Pantry & Meal Intelligence
-- **Pantry Matching**: Automatically categorizes what you already own vs. what ingredients you're missing for any recipe.
-- **One-Tap Shopping List**: Add missing recipe ingredients straight into your interactive shopping list with checklist toggles and item sorting.
-- **Collections & Bookmarking**: Organize recipes into custom collections (e.g. *Quick 15-Min Dinners*, *High Protein Lunches*).
-
-### 🎨 Artisan Glassmorphic UI & Mascot System
+### 🎨 Artisan Design System & Edge-to-Edge Material 3
+- **Edge-to-Edge System Bars**: Transparent status and navigation bars with adaptive icon contrast across light and dark modes.
 - **Chef Sprout Mascot**: Contextual mascot reactions that cheer you on, celebrate completed meals, and guide newcomers.
-- **Glassmorphism Navigation**: Floating frosted-glass bottom navigation bar with fluid animations.
-- **Dynamic Theming**: First-class support for both Light and Dark modes with soft pastel accents and WCAG AA accessible contrast.
+- **Double-Back-to-Exit Safety**: SnackBar confirmation on the home screen prevents accidental app dismissal.
 
 ---
 
@@ -81,9 +93,9 @@ By pairing **multimodal computer vision** (Google Gemini) with **ultra-fast lang
 
 <br/>
 
-| 🍳 Voice Cooking Mode | 👨‍🍳 Chef Sprout Profile |
-| :---: | :---: |
-| <img src="screenshots/04_cooking_mode.png" alt="Cooking Assistant" width="240"/> | <img src="screenshots/05_profile_dietary.png" alt="Profile Screen" width="240"/> |
+| 🍳 Voice Cooking Mode | 📅 Meal Planner | 👨‍🍳 Chef Sprout Profile |
+| :---: | :---: | :---: |
+| <img src="screenshots/04_cooking_mode.png" alt="Cooking Assistant" width="240"/> | <img src="screenshots/06_meal_planner.png" alt="Meal Planner" width="240"/> | <img src="screenshots/05_profile_dietary.png" alt="Profile Screen" width="240"/> |
 
 > *Note: Place your screenshots in the [`screenshots/`](screenshots/) directory to render the previews on GitHub.*
 
@@ -94,7 +106,7 @@ By pairing **multimodal computer vision** (Google Gemini) with **ultra-fast lang
 ```
                         ┌──────────────────────────────────────┐
                         │             Flutter App              │
-                        │ (Riverpod State + Glassmorphic UI)   │
+                        │ (Riverpod State + Material 3 Design) │
                         └──────────────────┬───────────────────┘
                                            │
                         ┌──────────────────┴───────────────────┐
@@ -142,25 +154,33 @@ sprout/
 ├── lib/
 │   ├── core/                      # Global configuration, routes & tutorial steps
 │   ├── design/                    # Design tokens, typography, radii & components
+│   │   └── components/
+│   │       ├── sprout_typewriter_hint.dart   # Animated typewriter search placeholder
+│   │       └── ...
 │   ├── features/
 │   │   ├── cooking/               # Interactive cooking assistant screen
 │   │   ├── home/                  # Home recipe feed & pantry highlights
+│   │   │   └── widgets/
+│   │   │       └── sprout_weekly_planner_card.dart  # Hand-drawn empty state card
 │   │   ├── onboarding/            # First-run welcome carousel
-│   │   ├── planner/               # Meal planning features
+│   │   ├── planner/               # Meal planning features & calendar
 │   │   ├── profile/               # Chef Sprout profile, preferences & legal
 │   │   ├── recipes/               # Recipe detail, nutrition & substitutions
 │   │   ├── saved/                 # Bookmarks & custom collections
 │   │   ├── scanner/               # AI Vision & Barcode ingredient scanner
-│   │   ├── search/                # Semantic search & category filtering
+│   │   │   └── widgets/
+│   │   │       └── sprout_scanner_overlay.dart      # Unified symmetrical viewfinder
+│   │   ├── search/                # Smart search, voice STT & multi-filter sheet
 │   │   └── shopping/              # Smart grocery shopping list
 │   ├── models/                    # Data models (Recipe, Pantry, Nutrition, etc.)
 │   ├── providers/                 # Riverpod state providers
 │   ├── repositories/              # Supabase & Open Food Facts data layer
 │   └── services/                  # Voice STT/TTS and AI services
+│       └── sprout_voice_search_service.dart         # Bilingual speech recognition
 ├── screenshots/                   # App screenshots for documentation
 ├── supabase/
 │   └── functions/sprout-ai/       # Secure Edge Function (Groq + Gemini proxy)
-└── test/                          # Unit, widget, and integration tests (172 tests)
+└── test/                          # Unit, widget, and integration tests (198 tests across 35 suites)
 ```
 
 ---
@@ -219,10 +239,10 @@ supabase functions deploy sprout-ai
 
 ## 🧪 Testing & Quality Assurance
 
-Sprout maintains 100% test pass rates across 172 unit and widget tests:
+Sprout maintains 100% test pass rates across 198 unit and widget tests:
 
 ```bash
-# Run Dart analyzer (ensures 0 lints, 0 warnings)
+# Run Dart analyzer (ensures 0 lints, 0 warnings, 0 errors)
 dart analyze
 
 # Run all test suites
@@ -236,7 +256,7 @@ flutter test --coverage
 To build a standalone production release APK:
 ```bash
 flutter build apk --release
-# The APK will be generated at build/app/outputs/flutter-apk/app-release.apk
+# The APK is generated at build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ---
@@ -248,6 +268,14 @@ flutter build apk --release
 - **Hardware-Backed Encryption**: On-device tokens and settings are encrypted via `flutter_secure_storage` utilizing Android Keystore and iOS Keychain.
 
 For vulnerability disclosure, please refer to our [Security Policy](SECURITY.md).
+
+---
+
+## 🏷️ Release Notes & Tagging
+
+Detailed release notes and changelogs are published on GitHub Releases:
+- **Latest Release:** [v1.1.0](https://github.com/Krishh19/Sprout-Recipe-app/releases/tag/v1.1.0)
+- **Tag:** `v1.1.0`
 
 ---
 
