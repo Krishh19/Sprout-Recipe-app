@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://flutter.dev"><img src="https://img.shields.io/badge/Flutter-v3.13+-02569B?logo=flutter&logoColor=white" alt="Flutter"></a>
   <a href="https://dart.dev"><img src="https://img.shields.io/badge/Dart-v3.13+-0175C2?logo=dart&logoColor=white" alt="Dart"></a>
-  <a href="https://github.com/Krishh19/Sprout-Recipe-app/releases"><img src="https://img.shields.io/badge/Release-v1.1.1-4CAF50?logo=github&logoColor=white" alt="Release"></a>
+  <a href="https://github.com/Krishh19/Sprout-Recipe-app/releases"><img src="https://img.shields.io/badge/Release-v1.1.2-4CAF50?logo=github&logoColor=white" alt="Release"></a>
   <a href="https://supabase.com"><img src="https://img.shields.io/badge/Supabase-Backend%20%26%20Edge%20Functions-3ECF8E?logo=supabase&logoColor=white" alt="Supabase"></a>
   <a href="https://groq.com"><img src="https://img.shields.io/badge/Groq-Qwen%2027B%20Inference-F05A28" alt="Groq"></a>
   <a href="https://ai.google.dev"><img src="https://img.shields.io/badge/Gemini-Multimodal%20Vision-4285F4?logo=google&logoColor=white" alt="Gemini"></a>
