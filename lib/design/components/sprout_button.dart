@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../colors.dart';
 import '../motion.dart';
 import '../radii.dart';
@@ -34,8 +35,7 @@ class SproutButton extends StatefulWidget {
 class _SproutButtonState extends State<SproutButton> {
   bool _isPressed = false;
 
-  bool get _isInteractive =>
-      widget.onPressed != null && !widget.isLoading;
+  bool get _isInteractive => widget.onPressed != null && !widget.isLoading;
 
   void _setPressed(bool pressed) {
     if (!_isInteractive || pressed == _isPressed) return;
@@ -51,7 +51,9 @@ class _SproutButtonState extends State<SproutButton> {
     Color fg;
     Border? border;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark ||
+        SproutColors.isDarkMode;
 
     switch (widget.variant) {
       case SproutButtonVariant.primary:
@@ -59,7 +61,9 @@ class _SproutButtonState extends State<SproutButton> {
         fg = Colors.white;
         break;
       case SproutButtonVariant.secondary:
-        bg = isDark ? SproutColors.nightElevatedSurface : SproutColors.softIvory;
+        bg = isDark
+            ? SproutColors.nightElevatedSurface
+            : SproutColors.softIvory;
         fg = isDark ? SproutColors.nightPrimaryInk : SproutColors.textPrimary;
         border = Border.all(
           color: isDark ? const Color(0xFF284031) : SproutColors.subtleBorder,
@@ -97,12 +101,16 @@ class _SproutButtonState extends State<SproutButton> {
               shape: SproutRadii.squircleButton(
                 side: border != null ? border.top : BorderSide.none,
               ),
-              shadows: widget.variant == SproutButtonVariant.primary &&
+              shadows:
+                  widget.variant == SproutButtonVariant.primary &&
                       widget.onPressed != null
                   ? [
                       BoxShadow(
-                        color: (isDark ? SproutColors.nightAccent : SproutColors.forestGreen)
-                            .withValues(alpha: isDark ? 0.28 : 0.20),
+                        color:
+                            (isDark
+                                    ? SproutColors.nightAccent
+                                    : SproutColors.forestGreen)
+                                .withValues(alpha: isDark ? 0.28 : 0.20),
                         blurRadius: 14,
                         offset: const Offset(0, 4),
                       ),
@@ -134,9 +142,13 @@ class _SproutButtonState extends State<SproutButton> {
                                 widget.icon!,
                                 const SizedBox(width: 8),
                               ],
-                              Text(
-                                widget.label,
-                                style: SproutTypography.button(color: fg),
+                              Flexible(
+                                child: Text(
+                                  widget.label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: SproutTypography.button(color: fg),
+                                ),
                               ),
                             ],
                           ),
