@@ -1,6 +1,8 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
 import '../../design/components/sprout_diet_badge.dart';
@@ -47,6 +49,36 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
     'Sun',
   ];
 
+  static const List<String> _monthNames = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  static const List<String> _shortMonthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -55,9 +87,20 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
 
   DateTime _getDateForDay(int dayOfWeek) {
     final now = DateTime.now();
-    final currentWeekday = now.weekday; // 1-7
+    final today = DateTime(now.year, now.month, now.day);
+    final currentWeekday = today.weekday; // 1-7
     final diff = dayOfWeek - currentWeekday;
-    return now.add(Duration(days: diff));
+    return today.add(Duration(days: diff));
+  }
+
+  String _getMonthRangeLabel() {
+    final monday = _getDateForDay(1);
+    final sunday = _getDateForDay(7);
+    if (monday.month == sunday.month) {
+      return '${_monthNames[monday.month - 1].toUpperCase()} ${monday.year}';
+    } else {
+      return '${_shortMonthNames[monday.month - 1].toUpperCase()} – ${_shortMonthNames[sunday.month - 1].toUpperCase()} ${sunday.year}';
+    }
   }
 
   Future<void> _exportToGrocery({bool wholeWeek = false}) async {
@@ -97,7 +140,9 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
 
     if (picked != null && mounted) {
       HapticFeedback.selectionClick();
-      await ref.read(mealPlanProvider.notifier).addOrUpdateMeal(
+      await ref
+          .read(mealPlanProvider.notifier)
+          .addOrUpdateMeal(
             dayOfWeek: _selectedDay,
             mealType: type,
             recipe: picked,
@@ -108,7 +153,9 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
   @override
   Widget build(BuildContext context) {
     final mealPlan = ref.watch(mealPlanProvider).value ?? [];
-    final dayMeals = mealPlan.where((m) => m.dayOfWeek == _selectedDay).toList();
+    final dayMeals = mealPlan
+        .where((m) => m.dayOfWeek == _selectedDay)
+        .toList();
 
     return SproutScaffold(
       body: SafeArea(
@@ -161,7 +208,9 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                       ),
                       child: const Icon(Icons.more_vert_rounded, size: 20),
                     ),
-                    shape: RoundedRectangleBorder(borderRadius: SproutRadii.card),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: SproutRadii.card,
+                    ),
                     onSelected: (val) {
                       if (val == 'export_week') {
                         _exportToGrocery(wholeWeek: true);
@@ -178,7 +227,10 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                         value: 'export_week',
                         child: Row(
                           children: [
-                            Icon(Icons.shopping_cart_checkout_rounded, size: 18),
+                            Icon(
+                              Icons.shopping_cart_checkout_rounded,
+                              size: 18,
+                            ),
                             SizedBox(width: 10),
                             Text('Export Week to Grocery List'),
                           ],
@@ -198,9 +250,16 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                         value: 'clear_week',
                         child: Row(
                           children: [
-                            Icon(Icons.delete_sweep_rounded, size: 18, color: SproutColors.tomato),
+                            Icon(
+                              Icons.delete_sweep_rounded,
+                              size: 18,
+                              color: SproutColors.tomato,
+                            ),
                             SizedBox(width: 10),
-                            Text('Clear Whole Week', style: TextStyle(color: SproutColors.tomato)),
+                            Text(
+                              'Clear Whole Week',
+                              style: TextStyle(color: SproutColors.tomato),
+                            ),
                           ],
                         ),
                       ),
@@ -210,22 +269,95 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
               ),
             ),
 
-            // Week Day Selector Carousel
+            // Month Range Header & Jump to Today
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 2, 16, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _getMonthRangeLabel(),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                      color: SproutColors.secondaryInk,
+                    ),
+                  ),
+                  SproutBouncyTap(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _selectedDay = DateTime.now().weekday);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _selectedDay == DateTime.now().weekday
+                            ? SproutColors.forestGreen.withValues(alpha: 0.12)
+                            : SproutColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _selectedDay == DateTime.now().weekday
+                              ? SproutColors.forestGreen
+                              : SproutColors.sage.withValues(alpha: 0.3),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: SproutColors.forestGreen,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Today',
+                            style: GoogleFonts.inter(
+                              color: SproutColors.forestGreen,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Compact Week Day Selector Strip
             Container(
-              height: 84,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: ListView.builder(
+              height: 64,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ListView.separated(
                 scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: 7,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final dayIndex = index + 1; // 1-7
                   final isSelected = dayIndex == _selectedDay;
+                  final isToday = dayIndex == DateTime.now().weekday;
                   final date = _getDateForDay(dayIndex);
                   final hasMeals = mealPlan.any((m) => m.dayOfWeek == dayIndex);
 
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                  return Semantics(
+                    button: true,
+                    selected: isSelected,
+                    label:
+                        '${_dayNames[dayIndex - 1]}, ${date.day} ${_monthNames[date.month - 1]}'
+                        '${isToday ? ", Today" : ""}'
+                        '${hasMeals ? ", Has planned meals" : ""}',
                     child: SproutBouncyTap(
                       onTap: () {
                         HapticFeedback.selectionClick();
@@ -233,53 +365,109 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
-                        width: 58,
+                        width: 48,
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? SproutColors.sproutGreen
-                              : SproutColors.surface,
-                          borderRadius: BorderRadius.circular(20),
+                              ? SproutColors.forestGreen
+                              : (isToday
+                                    ? SproutColors.forestGreen.withValues(
+                                        alpha: 0.08,
+                                      )
+                                    : SproutColors.surface),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: isSelected
-                                ? SproutColors.sproutGreen
-                                : SproutColors.sage.withValues(alpha: 0.3),
-                            width: 1.5,
+                                ? SproutColors.forestGreen
+                                : (isToday
+                                      ? SproutColors.forestGreen.withValues(
+                                          alpha: 0.5,
+                                        )
+                                      : SproutColors.sage.withValues(
+                                          alpha: 0.28,
+                                        )),
+                            width: isSelected ? 1.6 : (isToday ? 1.4 : 1.0),
                           ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: SproutColors.forestGreen.withValues(
+                                      alpha: 0.25,
+                                    ),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Weekday label ABOVE date (e.g. MON, TUE)
                             Text(
-                              _shortDays[index],
-                              style: SproutTypography.caption(
+                              _shortDays[index].toUpperCase(),
+                              style: GoogleFonts.inter(
                                 color: isSelected
-                                    ? Colors.white
-                                    : SproutColors.secondaryInk,
-                              ).copyWith(fontWeight: FontWeight.w600),
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : (isToday
+                                          ? SproutColors.forestGreen
+                                          : SproutColors.secondaryInk),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
+                            // Date number
                             Text(
                               '${date.day}',
-                              style: SproutTypography.bodyBold().copyWith(
+                              style: GoogleFonts.inter(
                                 color: isSelected
                                     ? Colors.white
-                                    : SproutColors.primaryInk,
+                                    : (isToday
+                                          ? SproutColors.forestGreen
+                                          : SproutColors.primaryInk),
                                 fontSize: 16,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            // Dot indicator
-                            Container(
-                              width: 5,
-                              height: 5,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: hasMeals
-                                    ? (isSelected
-                                        ? Colors.white
-                                        : SproutColors.sproutGreen)
-                                    : Colors.transparent,
-                              ),
+                            const SizedBox(height: 2),
+                            // Dot indicators for Today & Planned Meals
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (isToday)
+                                  Container(
+                                    width: 4,
+                                    height: 4,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : SproutColors.forestGreen,
+                                    ),
+                                  ),
+                                if (hasMeals)
+                                  Container(
+                                    width: 4,
+                                    height: 4,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : (isToday
+                                                ? SproutColors.forestGreen
+                                                : SproutColors.sproutGreen),
+                                    ),
+                                  ),
+                                if (!isToday && !hasMeals)
+                                  const SizedBox(height: 4),
+                              ],
                             ),
                           ],
                         ),
@@ -309,10 +497,14 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: SproutColors.sproutGreen.withValues(alpha: 0.12),
+                          color: SproutColors.sproutGreen.withValues(
+                            alpha: 0.12,
+                          ),
                           borderRadius: SproutRadii.borderPill,
                           border: Border.all(
-                            color: SproutColors.sproutGreen.withValues(alpha: 0.35),
+                            color: SproutColors.sproutGreen.withValues(
+                              alpha: 0.35,
+                            ),
                           ),
                         ),
                         child: Row(
@@ -360,18 +552,16 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
 
   Widget _buildMealSlot(MealType type, List<MealPlanItem> dayMeals) {
     final match = dayMeals.cast<MealPlanItem?>().firstWhere(
-          (m) => m?.mealType == type,
-          orElse: () => null,
-        );
+      (m) => m?.mealType == type,
+      orElse: () => null,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SproutColors.surface,
         borderRadius: SproutRadii.card,
-        border: Border.all(
-          color: SproutColors.sage.withValues(alpha: 0.25),
-        ),
+        border: Border.all(color: SproutColors.sage.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
             color: SproutColors.primaryInk.withValues(alpha: 0.03),
@@ -423,9 +613,7 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
     return SproutBouncyTap(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => RecipeDetailScreen(recipe: recipe),
-          ),
+          MaterialPageRoute(builder: (_) => RecipeDetailScreen(recipe: recipe)),
         );
       },
       child: Container(
@@ -433,9 +621,7 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
         decoration: BoxDecoration(
           color: SproutColors.canvas,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: SproutColors.sage.withValues(alpha: 0.2),
-          ),
+          border: Border.all(color: SproutColors.sage.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -542,9 +728,8 @@ class _MealPlannerScreenState extends ConsumerState<MealPlannerScreen> {
             const SizedBox(width: 8),
             Text(
               'Add ${type.label}',
-              style: SproutTypography.body(
-                color: SproutColors.sproutGreen,
-              ).copyWith(fontWeight: FontWeight.w600, fontSize: 13),
+              style: SproutTypography.body(color: SproutColors.sproutGreen)
+                  .copyWith(fontWeight: FontWeight.w600, fontSize: 13),
             ),
           ],
         ),
