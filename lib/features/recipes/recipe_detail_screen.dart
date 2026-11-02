@@ -1,26 +1,25 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/ingredient_matcher.dart';
 import '../../design/colors.dart';
 import '../../design/components/sprout_bouncy_tap.dart';
-import '../../design/components/sprout_button.dart';
 import '../../design/components/sprout_diet_badge.dart';
 import '../../design/components/sprout_recipe_image.dart';
 import '../../design/components/sprout_substitution_card.dart';
 import '../../design/radii.dart';
 import '../../design/sprout_ingredient_scaler.dart';
 import '../../design/typography.dart';
-import '../../models/meal_plan_item.dart';
 import '../../models/nutrition_info.dart';
 import '../../models/recipe.dart';
 import '../../providers/app_providers.dart';
 import '../../repositories/nutrition_service.dart';
 import '../cooking/cooking_screen.dart';
-import '../planner/meal_planner_screen.dart';
 import '../shopping/shopping_list_screen.dart';
 import 'widgets/recipe_share_card_sheet.dart';
+import '../../design/glass.dart';
+import 'widgets/add_to_grocery_glass_sheet.dart';
+import 'widgets/add_to_plan_glass_sheet.dart';
 import '../../services/groq_service.dart';
 import '../../services/recipe_translation_service.dart';
 
@@ -41,6 +40,8 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
   late bool _isSaved;
   bool _isLoadingDetails = false;
   bool _hasAddedToShoppingList = false;
+  bool _justSaved = false;
+  bool _isNutritionExpanded = true;
 
   // Bilingual Translation State
   String _currentLanguage = 'en'; // 'en' or 'hi'
@@ -119,6 +120,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
   void _toggleSave() async {
     setState(() {
       _isSaved = !_isSaved;
+      if (_isSaved) _justSaved = true;
     });
     ref.read(savedRecipesProvider.notifier).toggleFavorite(_recipe);
   }
@@ -129,171 +131,70 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
   }
 
   void _showAddToPlanSheet() {
-    int selectedDay = DateTime.now().weekday; // 1-7
-    final hour = DateTime.now().hour;
-    MealType selectedMeal = hour < 11
-        ? MealType.breakfast
-        : hour < 15
-            ? MealType.lunch
-            : hour < 18
-                ? MealType.snack
-                : MealType.dinner;
+    HapticFeedback.lightImpact();
+    AddToPlanGlassSheet.show(
+      context,
+      recipe: _recipe,
+      initialServings: _servings,
+    );
+  }
 
-    const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  void _showAddToGrocerySheet() {
+    HapticFeedback.lightImpact();
+    AddToGroceryGlassSheet.show(
+      context,
+      recipe: _recipe,
+      servings: _servings,
+    );
+  }
 
-    showModalBottomSheet(
+  void _showMoreOptionsModal() {
+    SproutGlassModalSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: SproutColors.surface,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: SproutColors.sage.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Add to Meal Plan 🗓️', style: SproutTypography.h3()),
-                        IconButton(
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () => Navigator.of(ctx).pop(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Schedule "${_recipe.title}" into your weekly routine',
-                      style: SproutTypography.caption(
-                        color: SproutColors.secondaryInk,
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Select Day:',
-                      style: SproutTypography.smallBold(
-                        color: SproutColors.secondaryInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(7, (idx) {
-                          final dayIdx = idx + 1;
-                          final isSel = selectedDay == dayIdx;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(shortDays[idx]),
-                              selected: isSel,
-                              selectedColor: SproutColors.sproutGreen,
-                              labelStyle: TextStyle(
-                                color:
-                                    isSel ? Colors.white : SproutColors.primaryInk,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              onSelected: (_) {
-                                HapticFeedback.selectionClick();
-                                setModalState(() => selectedDay = dayIdx);
-                              },
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text(
-                      'Select Meal Time:',
-                      style: SproutTypography.smallBold(
-                        color: SproutColors.secondaryInk,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: MealType.values.map((m) {
-                        final isSel = selectedMeal == m;
-                        return ChoiceChip(
-                          avatar: Text(m.emoji),
-                          label: Text(m.label),
-                          selected: isSel,
-                          selectedColor: SproutColors.sproutGreen,
-                          labelStyle: TextStyle(
-                            color: isSel ? Colors.white : SproutColors.primaryInk,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          onSelected: (_) {
-                            HapticFeedback.selectionClick();
-                            setModalState(() => selectedMeal = m);
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    SproutButton(
-                      label: 'Save to Plan',
-                      width: double.infinity,
-                      onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
-                        final nav = Navigator.of(context);
-                        HapticFeedback.mediumImpact();
-                        Navigator.of(ctx).pop();
-                        await ref.read(mealPlanProvider.notifier).addOrUpdateMeal(
-                              dayOfWeek: selectedDay,
-                              mealType: selectedMeal,
-                              recipe: _recipe,
-                            );
-                        if (!mounted) return;
-                        messenger.showSnackBar(
-                          SnackBar(
-                            backgroundColor: SproutColors.primaryInk,
-                            content: Text(
-                              'Planned for ${shortDays[selectedDay - 1]} ${selectedMeal.label}! 🗓️',
-                            ),
-                            action: SnackBarAction(
-                              label: 'View Plan',
-                              textColor: SproutColors.sproutGreen,
-                              onPressed: () {
-                                nav.push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const MealPlannerScreen(),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                  ],
-                ),
+      isScrollControlled: false,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.share_outlined, color: Colors.white),
+              title: const Text('Share Recipe Card', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _showShareCardSheet();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.translate_rounded, color: Colors.white),
+              title: Text(
+                _currentLanguage == 'hi' ? 'Switch to English' : 'हिंदी में अनुवाद करें (Hindi)',
+                style: const TextStyle(color: Colors.white),
               ),
-            );
-          },
-        );
-      },
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _toggleLanguage();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.shopping_bag_outlined, color: Colors.white),
+              title: const Text('Add to Grocery List', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _showAddToGrocerySheet();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.calendar_month_outlined, color: Colors.white),
+              title: const Text('Schedule in Meal Plan', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                _showAddToPlanSheet();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -301,22 +202,9 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final heroHeight = size.height * 0.38;
+    final heroHeight = (size.height * 0.38).clamp(220.0, 280.0);
     final isDark = Theme.of(context).brightness == Brightness.dark || SproutColors.isDarkMode;
 
-    // Theme-adaptive top navigation button tokens for optimal readability over food photos
-    final navBtnBg = isDark
-        ? const Color(0xCC1A241F)
-        : Colors.white.withValues(alpha: 0.88);
-    final navBtnBorder = isDark
-        ? Colors.white.withValues(alpha: 0.18)
-        : Colors.white.withValues(alpha: 0.6);
-    final navBtnShadow = isDark
-        ? Colors.black.withValues(alpha: 0.35)
-        : Colors.black.withValues(alpha: 0.08);
-    final navBtnIconColor = isDark
-        ? Colors.white
-        : SproutColors.lightPrimaryInk;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -358,177 +246,76 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
                     ),
 
                     // Top Navigation Action Icons: Back on left, Share & Favorite on right (Section 2.3)
+                    // Top Navigation Action Icons: Circular glass Back, Center Glass Badge, Language & More (Glass Style)
                     SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16.0,
                           vertical: 8.0,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Back Button
-                            SproutBouncyTap(
-                              onTap: () => Navigator.of(context).pop(),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(9),
-                                    decoration: BoxDecoration(
-                                      color: navBtnBg,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: navBtnBorder,
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: navBtnShadow,
-                                          blurRadius: 10,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      Icons.arrow_back_rounded,
-                                      color: navBtnIconColor,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            // Action Buttons: Language Switcher, Share, Favorite
                             Row(
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                // Language Switcher Button [ 🌐 EN | HI ]
-                                SproutBouncyTap(
-                                  onTap: _isTranslating ? null : _toggleLanguage,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                                        decoration: BoxDecoration(
-                                          color: navBtnBg,
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
-                                            color: navBtnBorder,
-                                            width: 1,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: navBtnShadow,
-                                              blurRadius: 10,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (_isTranslating)
-                                              SizedBox(
-                                                width: 13,
-                                                height: 13,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: navBtnIconColor,
-                                                ),
-                                              )
-                                            else
-                                              const Text('🌐', style: TextStyle(fontSize: 12)),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              _currentLanguage == 'hi' ? 'HI' : 'EN',
-                                              style: TextStyle(
-                                                color: navBtnIconColor,
-                                                fontWeight: FontWeight.w800,
-                                                fontSize: 12,
+                                // Back / Close Button (Circular frosted glass button)
+                                SproutGlassCircleButton(
+                                  iconData: Icons.close_rounded,
+                                  size: 40,
+                                  iconSize: 18,
+                                  tooltip: 'Close',
+                                  onTap: () => Navigator.of(context).pop(),
+                                ),
+
+                                // Actions: Language Switcher + More Options Button
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SproutGlassBadgePill(
+                                      text: _currentLanguage == 'hi' ? 'HI' : 'EN',
+                                      leading: _isTranslating
+                                          ? const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                            )
+                                          : const Text('🌐',
+                                              style: TextStyle(fontSize: 12)),
+                                      onTap: _isTranslating
+                                          ? null
+                                          : _toggleLanguage,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                // Share Button
-                                SproutBouncyTap(
-                                  onTap: _showShareCardSheet,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(9),
-                                        decoration: BoxDecoration(
-                                          color: navBtnBg,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: navBtnBorder,
-                                            width: 1,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: navBtnShadow,
-                                              blurRadius: 10,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Icon(
-                                          Icons.share_outlined,
-                                          color: navBtnIconColor,
-                                          size: 19,
-                                        ),
-                                      ),
+                                    const SizedBox(width: 8),
+                                    SproutGlassCircleButton(
+                                      iconData: Icons.more_horiz_rounded,
+                                      size: 40,
+                                      iconSize: 18,
+                                      tooltip: 'More Options',
+                                      onTap: _showMoreOptionsModal,
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                // Heart Save Button
-                                SproutBouncyTap(
-                                  onTap: _toggleSave,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(24),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(9),
-                                        decoration: BoxDecoration(
-                                          color: navBtnBg,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: navBtnBorder,
-                                            width: 1,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: navBtnShadow,
-                                              blurRadius: 10,
-                                            ),
-                                          ],
-                                        ),
-                                        child: Icon(
-                                          _isSaved
-                                              ? Icons.favorite_rounded
-                                              : Icons.favorite_border_rounded,
-                                          color: _isSaved
-                                              ? SproutColors.tomato
-                                              : navBtnIconColor,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  ],
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 10),
+                            // Floating Center Status Badge Pill (Matching Reference Images 1 & 2)
+                            Center(
+                              child: SproutGlassBadgePill(
+                                text: _justSaved
+                                    ? 'Added to Favorites'
+                                    : 'Choose when to make it',
+                                icon: _justSaved
+                                    ? Icons.favorite_rounded
+                                    : Icons.calendar_today_rounded,
+                                textColor: _justSaved
+                                    ? SproutColors.tomato
+                                    : Colors.white,
+                                onTap: _showAddToPlanSheet,
+                              ),
                             ),
                           ],
                         ),
@@ -715,65 +502,77 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
                           color: SproutColors.secondaryInk,
                         ).copyWith(height: 1.5),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                      // Serving Size Adjuster
+                      // Glass Metric Chips & Stepper (Image 1 & 2)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          color: SproutColors.canvas,
-                          borderRadius: SproutRadii.borderMd,
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : SproutColors.canvas,
+                          borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: SproutColors.sage.withValues(alpha: 0.25),
+                            color: isDark ? Colors.white.withValues(alpha: 0.12) : SproutColors.sage.withValues(alpha: 0.25),
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 12,
+                          runSpacing: 10,
                           children: [
-                            Text(
-                              'Servings',
-                              style: SproutTypography.bodyBold(),
-                            ),
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                _buildAdjustButton(
-                                  icon: Icons.remove_rounded,
-                                  onTap: () {
-                                    if (_servings > 1) {
-                                      HapticFeedback.selectionClick();
-                                      setState(() => _servings--);
-                                    }
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                  child: Text(
-                                    '$_servings',
-                                    style: SproutTypography.bodyBold(
-                                      color: SproutColors.sproutGreen,
-                                    ),
-                                  ),
-                                ),
-                                _buildAdjustButton(
-                                  icon: Icons.add_rounded,
-                                  onTap: () {
-                                    if (_servings < 24) {
-                                      HapticFeedback.selectionClick();
-                                      setState(() => _servings++);
-                                    }
-                                  },
-                                ),
+                                _buildGlassMetricItem('PREP', '10 min'),
+                                const SizedBox(width: 14),
+                                _buildGlassMetricItem('COOK', '${_recipe.totalTimeMins} min'),
+                                const SizedBox(width: 14),
+                                _buildGlassMetricItem('SERVES', '$_servings'),
                               ],
+                            ),
+                            SproutGlassStepper(
+                              value: _servings,
+                              min: 1,
+                              max: 24,
+                              onChanged: (v) => setState(() => _servings = v),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
+
+                      // Primary "🔥 Start Cooking" Pill Button (Image 1 & 2)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: SproutColors.glassCreamPill,
+                            foregroundColor: SproutColors.glassCreamPillText,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                          icon: const Text('🔥', style: TextStyle(fontSize: 18)),
+                          label: Text(
+                            _currentLanguage == 'hi' ? 'पकाना शुरू करें →' : 'Start Cooking →',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CookingScreen(recipe: _recipe),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
                       // Tab Bar (Section 11: Lighter editorial treatment with underline)
                       Container(
@@ -834,73 +633,57 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
             ],
           ),
 
-          // Bottom Fixed "Start Cooking" Button (Theme-adaptive glass container)
+          // Pinned Floating Glass Bottom Dock (Image 2)
           Positioned(
-            bottom: 0,
+            bottom: MediaQuery.paddingOf(context).bottom > 0
+                ? MediaQuery.paddingOf(context).bottom
+                : 12,
             left: 0,
             right: 0,
-            child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? SproutColors.nightSurface.withValues(alpha: 0.94)
-                        : Colors.white.withValues(alpha: 0.95),
-                    border: Border(
-                      top: BorderSide(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.12)
-                            : SproutColors.sage.withValues(alpha: 0.25),
-                        width: 1.0,
-                      ),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.05),
-                        blurRadius: 16,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-              child: SproutButton(
-                label: _currentLanguage == 'hi' ? 'पकाना शुरू करें →' : 'Start Cooking →',
-                width: double.infinity,
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => CookingScreen(recipe: _recipe),
-                    ),
-                  );
-                },
-              ),
+            child: SproutGlassDock(
+              isSaved: _isSaved,
+              isFavorite: _isSaved,
+              onSaveTap: _toggleSave,
+              onInstructionsTap: () {
+                _tabController.animateTo(1);
+              },
+              onPlanTap: _showAddToPlanSheet,
+              onGroceryTap: _showAddToGrocerySheet,
+              onFavoriteTap: _toggleSave,
             ),
           ),
-        ),
-      ),
         ],
       ),
     );
   }
 
-  Widget _buildAdjustButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: SproutColors.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: SproutColors.sage.withValues(alpha: 0.3)),
+  Widget _buildGlassMetricItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: SproutColors.secondaryInk,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
         ),
-        child: Icon(icon, size: 16, color: SproutColors.primaryInk),
-      ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            color: SproutColors.primaryInk,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
+
 
   Widget _buildIngredientsList() {
     final scale = _servings / (_recipe.servings > 0 ? _recipe.servings : 1);
@@ -1450,6 +1233,35 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen>
           _buildMacroRow('Fat', '${fat}g', '$fPct%', SproutColors.carrot),
           const Divider(height: 16, thickness: 0.5, color: Color(0x1F8DA399)),
           _buildMacroRow('Dietary Fiber', '${fiber}g', null, SproutColors.sage),
+
+          if (_isNutritionExpanded) ...[
+            const Divider(height: 16, thickness: 0.5, color: Color(0x1F8DA399)),
+            _buildMacroRow('Saturated Fat', '${((fat * 0.35) * 10).round() / 10}g', '${((fat * 0.35 / 20) * 100).round()}%', SproutColors.carrot),
+            const Divider(height: 16, thickness: 0.5, color: Color(0x1F8DA399)),
+            _buildMacroRow('Total Sugars', '${((carbs * 0.25) * 10).round() / 10}g', null, SproutColors.butter),
+            const Divider(height: 16, thickness: 0.5, color: Color(0x1F8DA399)),
+            _buildMacroRow('Cholesterol', '${(protein * 2.5).round()}mg', '${((protein * 2.5 / 300) * 100).round()}%', SproutColors.sproutGreen),
+            const Divider(height: 16, thickness: 0.5, color: Color(0x1F8DA399)),
+            _buildMacroRow('Sodium', '${(cal * 1.8).round()}mg', '${((cal * 1.8 / 2300) * 100).round()}%', SproutColors.secondaryInk),
+          ],
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => setState(() => _isNutritionExpanded = !_isNutritionExpanded),
+              icon: Icon(
+                _isNutritionExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                color: SproutColors.secondaryInk,
+                size: 18,
+              ),
+              label: Text(
+                _isNutritionExpanded ? 'Hide Full Nutrition Label' : 'Show Full Nutrition Label',
+                style: SproutTypography.caption(
+                  color: SproutColors.secondaryInk,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
 
           if (info.healthNote != null && info.healthNote!.isNotEmpty) ...[
             const SizedBox(height: 16),

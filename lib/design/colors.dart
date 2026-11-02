@@ -104,6 +104,39 @@ class SproutColors {
   static const Color lightGlassBorder = Color(0x66E4E0D5);
 
   // ---------------------------------------------------------------------------
+  // Glassmorphic Overhaul Tokens (Authentic Apple-Style Frosted Materials)
+  // ---------------------------------------------------------------------------
+  static const Color glassSmokedDark = Color(0xB3181512);     // 70% dark smoked glass
+  static const Color glassSmokedMedium = Color(0x801A1815);   // 50% medium smoked glass
+  static const Color glassSmokedLight = Color(0x4D1A1815);    // 30% subtle smoked glass
+  static const Color glassFrostedWhite = Color(0x1FFFFFFF);   // Translucent white frost
+  static const Color glassFrostedPill = Color(0x2EFFFFFF);    // Translucent pill background
+  static const Color glassWarmAmber = Color(0xFFE5A93C);      // Active selection amber pill
+  static const Color glassCreamPill = Color(0xFFFAF6EE);      // Solid warm cream primary action button
+  static const Color glassCreamPillText = Color(0xFF1B1917);  // High-contrast ink on cream pill
+  static const Color glassDivider = Color(0x1AFFFFFF);        // Hairline glass divider
+  static const Color glassIconActive = Color(0xFFFAF6EE);     // Active dock icon
+  static const Color glassIconInactive = Color(0x8AFFFFFF);   // Inactive dock icon
+
+  static const LinearGradient glassSpecularBorder = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0x66FFFFFF), // 40% white edge refraction
+      Color(0x14FFFFFF), // 8% white subtle edge
+    ],
+  );
+
+  static const LinearGradient glassDarkGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0x99221E1A),
+      Color(0x73161412),
+    ],
+  );
+
+  // ---------------------------------------------------------------------------
   // Night & Deep Forest tokens (Dark Mode counterpart)
   // ---------------------------------------------------------------------------
   static const Color nightCanvas = Color(0xFF080E12);
